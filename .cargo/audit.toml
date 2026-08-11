@@ -1,0 +1,16 @@
+# cargo-audit configuration.
+#
+# Every ignore below is a triaged, time-boxed exception with a stated
+# remediation. CI's audit job FAILS on any advisory not listed here, so
+# a red audit job always means a NEW, untriaged advisory.
+
+[advisories]
+ignore = [
+    # rmcp 0.16.0: DNS rebinding in the Streamable HTTP server transport
+    # (severity 8.8). Not exploitable here: this workspace compiles rmcp
+    # with features = ["server", "transport-io", "macros"] only — the
+    # HTTP transport is not built, and the server is stdio-only.
+    # Remediation: rmcp >= 3.x upgrade, tracked as Phase 3 in
+    # docs/PRODUCT_REVIEW_2026-08-11.md.
+    "RUSTSEC-2026-0189",
+]

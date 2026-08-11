@@ -16,5 +16,5 @@ Do not open public issues for security reports.
 ## Supply chain
 
 - Dependabot alerts and PRs are enabled.
-- CI runs `cargo audit` (advisory) and gitleaks secret scanning on every PR.
+- CI runs `cargo audit` and gitleaks secret scanning on every PR. The audit job **fails on any advisory not explicitly triaged** in `.cargo/audit.toml`; each ignore there documents why it is not exploitable and what remediation is queued.
 - A pre-commit secret-scanning hook ships in `.githooks/` (see CONTRIBUTING.md for setup).

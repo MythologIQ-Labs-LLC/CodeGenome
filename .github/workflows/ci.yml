@@ -46,9 +46,10 @@ jobs:
           ./gitleaks detect --source . --config .gitleaks.toml --no-banner --redact
 
   audit:
-    name: Dependency audit (advisory only)
+    # Fails only on advisories not triaged in .cargo/audit.toml —
+    # red here always means a new, untriaged advisory.
+    name: Dependency audit
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 

@@ -36,6 +36,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the pro
 
 ### Added
 - Regression tests: recursive extraction (impl methods, inline modules, nested-fn attribution, in-function imports), cross-file address distinctness, CLI arg-tree validation + parse tests for all 11 subcommands + index→status round-trip (the CLI crate previously had zero tests).
+- `.cargo/audit.toml`: the CI audit job is now blocking, with RUSTSEC-2026-0189 (rmcp HTTP transport, not compiled into this stdio-only server) as the single documented, time-boxed exception until the Phase 3 rmcp upgrade. A red audit job now always means a new, untriaged advisory.
 
 ### Known issues (tracked in docs/PRODUCT_REVIEW_2026-08-11.md)
 - rmcp 0.16 predates the stateless MCP 2026-07-28 spec (current SDK: 3.x) and carries RUSTSEC-2026-0189 (DNS rebinding in the HTTP transport — not compiled into this stdio-only server); tree-sitter 0.24 vs current 0.26; bincode 1.x unmaintained. All Phase 3.
