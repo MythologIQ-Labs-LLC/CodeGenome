@@ -11,7 +11,7 @@ description = "MCP tool server for the Unified Code Reality Graph"
 codegenome-identity = { path = "../codegenome-identity" }
 codegenome-substrate = { path = "../codegenome-substrate" }
 rmcp = { version = "0.16", features = ["server", "transport-io", "macros"] }
-git2 = "0.20"
+git2 = "0.21"
 schemars = "0.8"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
