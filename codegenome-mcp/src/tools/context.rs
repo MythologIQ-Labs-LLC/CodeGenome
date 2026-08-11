@@ -30,23 +30,43 @@ impl CodegenomeTools {
         let ctx = LocalQueryContext::new(overlay.nodes(), overlay.edges());
         let result = traversal::execute(&query, &ctx);
 
+        // Claim-level auditability: every node carries its full
+        // address, and every edge is reported as a claim with its
+        // endpoints, relation, per-source confidence, and evidence
+        // count — never collapsed to a bare tally.
         let nodes: Vec<_> = result
             .nodes
             .iter()
             .map(|n| {
                 serde_json::json!({
+                    "address": n.address.to_string(),
                     "kind": format!("{:?}", n.kind),
                     "confidence": n.confidence,
                     "provenance": format!("{:?}", n.provenance.source),
+                    "actor": n.provenance.actor,
                     "span": n.span.as_ref().map(|s| format!("{}:{}", s.start_line, s.end_line)),
                 })
             })
             .collect();
 
+        let claims: Vec<_> = result
+            .edges
+            .iter()
+            .map(|e| {
+                serde_json::json!({
+                    "source": e.source.to_string(),
+                    "target": e.target.to_string(),
+                    "relation": format!("{:?}", e.relation),
+                    "confidence": e.confidence,
+                    "evidence_count": e.evidence.len(),
+                })
+            })
+            .collect();
+
         let mut resp = serde_json::json!({
-            "target": format!("{addr:?}"),
+            "target": addr.to_string(),
             "nodes": nodes,
-            "edges": result.edges.len(),
+            "edges": claims,
             "paths": result.paths.len(),
         });
         resp["meta"] = self.response_meta();

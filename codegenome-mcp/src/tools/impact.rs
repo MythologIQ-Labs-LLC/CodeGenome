@@ -21,6 +21,9 @@ impl CodegenomeTools {
         let mut results: Vec<_> = impact.iter().filter(|(_, &s)| s > 0.01).collect();
         results.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal));
 
+        // Claim-level auditability: every affected node carries its
+        // full address so the claim can be re-queried and traced, not
+        // just a human-readable line label.
         let items: Vec<_> = results
             .iter()
             .take(50)
@@ -30,10 +33,10 @@ impl CodegenomeTools {
                     .iter()
                     .find(|n| n.address == **addr)
                     .and_then(|n| n.span.as_ref())
-                    .map(|s| format!("line {}:{}", s.start_line, s.end_line))
-                    .unwrap_or_else(|| format!("{addr:?}"));
+                    .map(|s| format!("line {}:{}", s.start_line, s.end_line));
                 serde_json::json!({
-                    "node": loc,
+                    "address": addr.to_string(),
+                    "span": loc,
                     "impact_score": score,
                 })
             })
@@ -41,6 +44,7 @@ impl CodegenomeTools {
 
         let mut resp = serde_json::json!({
             "source": format!("{}:{}", input.file, input.line),
+            "origin": addr.to_string(),
             "affected_nodes": items,
         });
         resp["meta"] = self.response_meta();

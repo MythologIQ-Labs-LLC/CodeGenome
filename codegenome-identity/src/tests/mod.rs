@@ -1,3 +1,4 @@
+mod attest_tests;
 mod canonical_tests;
 mod community_tests;
 mod confidence_fusion_tests;
@@ -24,7 +25,9 @@ mod multi_lang_pipeline_tests;
 mod pdg_tests;
 mod process_tests;
 mod propagator_tests;
+mod prov_tests;
 mod query_context_tests;
+mod repo_map_tests;
 mod resolve_integration_tests;
 mod resolve_tests;
 mod runtime_tests;

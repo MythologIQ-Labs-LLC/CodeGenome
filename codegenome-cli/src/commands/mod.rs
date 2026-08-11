@@ -1,8 +1,11 @@
 pub mod analyze;
+pub mod attest;
 pub mod experiment;
+pub mod export_prov;
 pub mod federate;
 pub mod index;
 pub mod init;
+pub mod map;
 pub mod query;
 pub mod serve;
 pub mod status;

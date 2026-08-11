@@ -112,7 +112,7 @@ Source Files (.rs, .ts, .tsx, .py)
 |-------|---------|
 | `codegenome-identity` | Graph types, UOR identity, 9 overlays, multi-lang extraction (`lang/`), indexing pipeline, fusion, signal propagation, evidence, diff mapping |
 | `codegenome-substrate` | Experiments engine, beliefs, embeddings, federation, governance (policy, Merkle ledger, write gate) |
-| `codegenome-cli` | 11 CLI commands: `index`, `query`, `status`, `serve`, `init`, `verify`, `analyze`, `experiment`, `federate`, `visualize`, `workspace-report` |
+| `codegenome-cli` | 14 CLI commands: `index`, `query`, `status`, `serve`, `init`, `verify`, `analyze`, `experiment`, `federate`, `visualize`, `workspace-report`, `export-prov`, `attest`, `map` |
 | `codegenome-mcp` | MCP stdio tool server with 11 governed tools (7 read + 4 write-gated) |
 
 ### Layer Model
@@ -330,6 +330,8 @@ Every graph operation is governed:
 - **Policy Engine**: TOML rules for allow/deny/require-approval decisions
 - **Write Gating**: Confidence floors and provenance requirements before mutation
 - **Index Freshness**: Source hash comparison detects stale indexes
+- **Snapshot Attestation**: `codegenome attest` emits an in-toto Statement with BLAKE3 digests over every store artifact; `--verify` detects tampering (the substrate-level answer to agent-memory poisoning). Sigstore signing of the statement is a release-pipeline step.
+- **Standards Provenance Export**: `codegenome export-prov` maps the graph's intrinsic provenance to W3C PROV-JSON (entities/activities/agents, `wasGeneratedBy`/`wasAttributedTo`), with LLM-derived and belief-based claims explicitly labelled `cg:aiGenerated` — kept distinguishable from compiler-grade observations
 
 ```toml
 # governance.toml
@@ -393,7 +395,7 @@ codegenome serve
 | Crates | 4 (identity + substrate + cli + mcp) |
 | Overlays | 9 (8 active + LSP stub) + beliefs module |
 | Edge types | 16 |
-| CLI commands | 11 |
+| CLI commands | 14 |
 | MCP tools | 11 (7 read + 4 write-gated) |
 | Fitness functions | 4 |
 | Governance entries | 118 |
@@ -444,10 +446,12 @@ codegenome serve
 | Reasoning artifacts (beliefs as graph nodes) | Implemented | `belief/` |
 | MCP assertion tool (write-gated) | Implemented | `codegenome-mcp/tools/assert_belief` |
 | Impact propagation in detect_changes | Implemented | `diff/propagator`, `tools/detect` |
+| W3C PROV-JSON provenance export | Implemented | `graph/prov.rs`, `export-prov` |
+| In-toto index-snapshot attestation (backlog W4/W5 step 1) | Implemented (unsigned statement) | `store/attest.rs`, `attest` |
+| Markdown repo-map projection | Implemented | `graph/repo_map.rs`, `map` |
 | Capability broker | Planned | Awaiting FailSafe-Pro |
 | LSP overlay (rust-analyzer protocol) | Planned | `overlay/lsp.rs` is a stub |
-| SLSA supply-chain attestation (backlog W4) | Planned | — |
-| Sigstore signing of graph artifacts (backlog W5) | Planned | — |
+| Sigstore signing of attestations (backlog W4/W5 step 2) | Planned | release-pipeline `cosign attest` |
 | IDE panels + code lenses (backlog W1) | Planned | — |
 
 ## Contributing

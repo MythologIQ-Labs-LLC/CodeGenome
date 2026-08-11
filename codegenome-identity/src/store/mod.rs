@@ -1,3 +1,4 @@
+pub mod attest;
 pub mod backend;
 pub mod meta;
 pub mod ondisk;

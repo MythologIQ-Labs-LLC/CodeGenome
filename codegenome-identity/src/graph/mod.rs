@@ -3,8 +3,10 @@ pub mod edge;
 pub mod export;
 pub mod node;
 pub mod overlay;
+pub mod prov;
 pub mod query;
 pub mod query_context;
+pub mod repo_map;
 pub mod resolve;
 pub mod traversal;
 

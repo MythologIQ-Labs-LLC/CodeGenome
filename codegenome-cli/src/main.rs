@@ -93,6 +93,32 @@ enum Commands {
         #[arg(long, default_value_t = 0.0)]
         min_confidence: f64,
     },
+    /// Export graph provenance as W3C PROV-JSON
+    ExportProv {
+        #[arg(long, default_value = ".codegenome")]
+        store_dir: String,
+        #[arg(long, default_value = "provenance.prov.json")]
+        output: String,
+    },
+    /// Emit or verify an in-toto attestation of the index snapshot
+    Attest {
+        #[arg(long, default_value = ".codegenome")]
+        store_dir: String,
+        #[arg(long, default_value = "index-attestation.json")]
+        output: String,
+        /// Verify an existing attestation file instead of emitting
+        #[arg(long)]
+        verify: Option<String>,
+    },
+    /// Render a markdown repo map projection of the graph
+    Map {
+        #[arg(long, default_value = ".")]
+        source_dir: String,
+        #[arg(long, default_value = ".codegenome")]
+        store_dir: String,
+        #[arg(long, default_value = "-")]
+        output: String,
+    },
     /// Report workspace federation metrics
     WorkspaceReport {
         #[arg(long, default_value = ".codegenome-workspace")]
@@ -166,6 +192,23 @@ fn main() {
         } => {
             commands::visualize::run(&store_dir, &output, min_confidence);
         }
+        Commands::ExportProv { store_dir, output } => {
+            commands::export_prov::run(&store_dir, &output);
+        }
+        Commands::Attest {
+            store_dir,
+            output,
+            verify,
+        } => {
+            commands::attest::run(&store_dir, &output, verify.as_deref());
+        }
+        Commands::Map {
+            source_dir,
+            store_dir,
+            output,
+        } => {
+            commands::map::run(&source_dir, &store_dir, &output);
+        }
         Commands::WorkspaceReport { store_dir, json } => {
             commands::workspace_report::run(&store_dir, json);
         }
@@ -185,7 +228,7 @@ mod tests {
     }
 
     #[test]
-    fn all_eleven_subcommands_parse() {
+    fn all_subcommands_parse() {
         let cases: &[&[&str]] = &[
             &["codegenome", "index", "--source-dir", "src"],
             &["codegenome", "query", "--file", "a.rs", "--line", "4"],
@@ -204,6 +247,10 @@ mod tests {
             &["codegenome", "federate", "--workspace-config", "ws.toml"],
             &["codegenome", "visualize", "--min-confidence", "0.5"],
             &["codegenome", "workspace-report"],
+            &["codegenome", "export-prov"],
+            &["codegenome", "attest"],
+            &["codegenome", "attest", "--verify", "a.json"],
+            &["codegenome", "map"],
         ];
         for args in cases {
             assert!(
