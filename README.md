@@ -5,8 +5,8 @@
 
 <p align="center">
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.88%2B-orange?logo=rust&logoColor=white" alt="Rust 1.88+"></a>
-  <a href="#project-metrics"><img src="https://img.shields.io/badge/tests-199%20passing-brightgreen" alt="Tests: 199 passing"></a>
-  <a href="#graph-composition"><img src="https://img.shields.io/badge/overlays-9-blueviolet" alt="Overlays: 9"></a>
+  <a href="#project-metrics"><img src="https://img.shields.io/badge/tests-264%20passing-brightgreen" alt="Tests: 264 passing"></a>
+  <a href="#graph-composition"><img src="https://img.shields.io/badge/overlays-9%20(8%20active%20%2B%20LSP%20stub)-blueviolet" alt="Overlays: 9 (8 active + LSP stub)"></a>
   <a href="#multi-language-support"><img src="https://img.shields.io/badge/languages-3%20(Rust%20%7C%20TS%20%7C%20Python)-blue" alt="Languages: 3"></a>
   <a href="#governance"><img src="https://img.shields.io/badge/governance-active-critical" alt="Governance: active"></a>
   <a href="#research-tracker"><img src="https://img.shields.io/badge/status-research%20prototype-yellow" alt="Status: research prototype"></a>
@@ -18,6 +18,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Intent & Value Provenance](#intent--value-provenance)
 - [Problem Statement](#problem-statement)
 - [Architecture](#architecture)
   - [Workspace](#workspace)
@@ -53,6 +54,15 @@ CODEGENOME is a content-addressed, multi-layer program analysis graph that merge
 The intended outcome is not "better code search" or "a smarter assistant." The intended outcome is a **universal internal representation** from which those functions can be derived as query, traversal, policy, and mutation operations over the same canonical reality model.
 
 > **Research prototype.** Not production-ready. APIs will change.
+
+## Intent & Value Provenance
+
+This repository carries a **dual mandate**, and both halves are permanent:
+
+1. **Experimental instrument.** CODEGENOME was designed from the start to *measure itself* — recall/impact accuracy, propagation behavior, graph density, cycle time, and governance integrity are first-class, instrumented metrics. The experiment engine, the fitness functions, the tamper-evident run logs, and the archived raw data in `data/runs/` are not scaffolding to be removed on the way to a product; they are the evidence-generating apparatus the product's claims rest on.
+2. **Product substrate.** CODEGENOME is developed toward a usable product: a governed code-reality graph that AI agents consume as domain-specific memory (via MCP and the [Agent Memory](https://github.com/MythologIQ-Labs-LLC/agent-memory) doctrine).
+
+The connection between the two is the point: **every capability the product claims must trace to the experimental record that established it.** Fusion is in the product because RUN-001/RUN-002 showed a structural fitness jump (0.29 → 0.64 baseline) that 224K iterations of parameter tuning could not produce. Freshness gating is in the product because staleness is a measured, computable relation. Future capabilities enter the same way — through experiments whose raw data is retained and whose conclusions are recorded in the governance ledger. Changes that would degrade the repository's capacity to run, log, verify, and archive experiments are treated as regressions, even if they simplify the product.
 
 ## Problem Statement
 
@@ -100,10 +110,10 @@ Source Files (.rs, .ts, .tsx, .py)
 
 | Crate | Purpose |
 |-------|---------|
-| `codegenome-core` | Graph types, 9 overlays, multi-lang extraction, fusion, signal, experiments, governance, evidence |
-| `codegenome-governance` | Policy evaluation, Merkle ledger, evidence bundles, capability broker |
-| `codegenome-cli` | 6 CLI commands: `index`, `query`, `status`, `verify`, `serve`, `experiment` |
-| `codegenome-mcp` | MCP stdio tool server with 4 governed tools |
+| `codegenome-identity` | Graph types, UOR identity, 9 overlays, multi-lang extraction (`lang/`), indexing pipeline, fusion, signal propagation, evidence, diff mapping |
+| `codegenome-substrate` | Experiments engine, beliefs, embeddings, federation, governance (policy, Merkle ledger, write gate) |
+| `codegenome-cli` | 11 CLI commands: `index`, `query`, `status`, `serve`, `init`, `verify`, `analyze`, `experiment`, `federate`, `visualize`, `workspace-report` |
+| `codegenome-mcp` | MCP stdio tool server with 11 governed tools (7 read + 4 write-gated) |
 
 ### Layer Model
 
@@ -113,8 +123,8 @@ Source Files (.rs, .ts, .tsx, .py)
 | **L2: Extraction** | Convert source evidence into graph artifacts | `lang/`, `index/`, `overlay/` |
 | **L3: Composition** | Fuse observations into coherent state | `index/merger`, `confidence/fusion` |
 | **L4: Query** | Make graph reality operationally usable | `graph/query`, `graph/traversal` |
-| **L5: Governance** | Constrain and audit actions | `codegenome-governance/` |
-| **L6: Evaluation** | Measure and improve substrate quality | `experiments/` |
+| **L5: Governance** | Constrain and audit actions | `codegenome-substrate/src/governance/` |
+| **L6: Evaluation** | Measure and improve substrate quality | `codegenome-substrate/src/experiments/` |
 
 ### Core Concepts
 
@@ -142,7 +152,7 @@ All backends produce the same language-neutral intermediate representation (`lan
 
 ```bash
 # Clone and build
-git clone https://github.com/MythologIQ/CodeGenome.git
+git clone https://github.com/MythologIQ-Labs-LLC/CodeGenome.git
 cd CodeGenome
 cargo build --workspace
 
@@ -178,7 +188,7 @@ Nine overlay layers compose through a shared `Overlay` trait:
 | PDG | `ControlDependence`, `DataFlow` | CFG+DFG composition | 1.0 |
 | Runtime | `Calls` (weighted) | TSV trace file | count/10 |
 | SCIP | `References`, `Implements` | Compiler index (protobuf) | 1.0 |
-| LSP | `References` | rust-analyzer subprocess | 1.0 |
+| LSP | `References` | rust-analyzer subprocess (**stub** — detects the binary, contributes no edges yet) | 1.0 |
 | **Fused** | **All types merged** | **Noisy-OR fusion** | **max ≤ fused ≤ 1.0** |
 
 ## Confidence Fusion
@@ -229,8 +239,8 @@ Four fitness functions (switchable at runtime):
 
 | ID | Name | Iterations | Duration | Peak Fitness | Status |
 |----|------|-----------|----------|-------------|--------|
-| **RUN-001** | Pre-Fusion Exhaustive Search | 224,703 | ~62 hrs | 0.896 | Complete |
-| **RUN-002** | Post-Fusion Baseline | In progress | — | 0.825 (early) | Active |
+| **RUN-001** | Pre-Fusion Exhaustive Search | 224,703 | ~62 hrs | 0.896 | Complete — raw data archived in `data/runs/` |
+| **RUN-002** | Post-Fusion Baseline | 20+ (early) | — | 0.825 (early) | Paused — baseline recorded, full run not yet resumed |
 
 ### Key Findings
 
@@ -259,6 +269,8 @@ Restarts:     ~7,500
 | 125K–150K | 0.565 | 0.895 | 1 | 333 |
 | 175K–200K | 0.596 | 0.896 | 1 | 332 |
 | 200K–225K | 0.620 | 0.896 | 0 | 334 |
+
+*The 75K–100K and 150K–175K buckets were omitted from the original analysis; the full raw record (all 224,703 iterations) is committed at `data/runs/run-001-prefusion-224k.tsv` and can be re-derived from it.*
 
 **Findings:**
 - The fitness function has a structural ceiling determined by the graph's edge confidence distribution
@@ -303,7 +315,7 @@ Run 002 (post-fusion):   baseline = 0.64  ← fusion raises the floor
 
 | # | Question | Hypothesis | Status |
 |---|----------|-----------|--------|
-| RQ-1 | What is the post-fusion fitness ceiling? | Higher than 0.896 due to stronger edge confidences | Active (RUN-002) |
+| RQ-1 | What is the post-fusion fitness ceiling? | Higher than 0.896 due to stronger edge confidences | Open (RUN-002 paused) |
 | RQ-2 | Does multi-language indexing affect graph density? | Cross-language call edges increase density but may reduce precision | Planned |
 | RQ-3 | Can federated cross-repo edges improve impact analysis? | Cross-repo dependency edges should reduce false negatives in blast radius | Planned |
 | RQ-4 | Does the autopoietic tier (fitness switching) find better optima? | Dynamic fitness landscapes prevent premature convergence | Planned |
@@ -375,17 +387,17 @@ codegenome serve
 
 | Metric | Value |
 |--------|-------|
-| Source files | 170+ (Rust) |
+| Source files | 198 (Rust, ~15.3K LOC) |
 | Languages supported | 3 (Rust, TypeScript, Python) |
-| Tests | 224 (all passing) |
-| Crates | 4 (core + governance + cli + mcp) |
-| Overlays | 9 + beliefs overlay |
-| Edge types | 15 (12 structural + 3 reasoning) |
-| CLI commands | 6 |
+| Tests | 264 (all passing) |
+| Crates | 4 (identity + substrate + cli + mcp) |
+| Overlays | 9 (8 active + LSP stub) + beliefs module |
+| Edge types | 16 |
+| CLI commands | 11 |
 | MCP tools | 11 (7 read + 4 write-gated) |
 | Fitness functions | 4 |
-| Governance entries | 108 |
-| Experiment data | 224K+ iterations archived |
+| Governance entries | 118 |
+| Experiment data | 224K+ iterations archived in `data/runs/` |
 
 ## Dependencies
 
@@ -414,7 +426,7 @@ codegenome serve
 | Capability | Status | Location |
 |------------|--------|----------|
 | UOR content-addressed identity | Implemented | `identity/` |
-| 9 overlay types | Implemented | `overlay/` |
+| 9 overlay types | 8 implemented, LSP overlay stub | `overlay/` |
 | Multi-language extraction (Rust + TS + Python) | Implemented | `lang/` |
 | Language-neutral IR + shared graph builder | Implemented | `lang/ir.rs`, `lang/graph_builder.rs` |
 | Multi-lang pipeline wiring | Implemented | `index/parser`, `index/flow`, `index/resolver_multi` |
@@ -422,9 +434,9 @@ codegenome serve
 | Signal propagation | Implemented | `signal/` |
 | Karpathy Loop (Tier 1–3) | Implemented | `experiments/` |
 | Secured experiment chain | Implemented | BLAKE3 chain + checkpoint |
-| CLI (6 commands) | Implemented | `codegenome-cli/` |
-| MCP server (4 tools) | Implemented | `codegenome-mcp/` |
-| Governance (ledger + policy + write gating) | Implemented | `codegenome-governance/` |
+| CLI (11 commands) | Implemented | `codegenome-cli/` |
+| MCP server (11 tools) | Implemented | `codegenome-mcp/` |
+| Governance (ledger + policy + write gating) | Implemented | `codegenome-substrate/src/governance/` |
 | Evidence log | Implemented | `evidence/` |
 | Index freshness | Implemented | `store/meta.rs` |
 | Federation (cross-repo identity + symbol resolution) | Implemented | `federation/`, `graph/query_context` |
@@ -433,10 +445,14 @@ codegenome serve
 | MCP assertion tool (write-gated) | Implemented | `codegenome-mcp/tools/assert_belief` |
 | Impact propagation in detect_changes | Implemented | `diff/propagator`, `tools/detect` |
 | Capability broker | Planned | Awaiting FailSafe-Pro |
+| LSP overlay (rust-analyzer protocol) | Planned | `overlay/lsp.rs` is a stub |
+| SLSA supply-chain attestation (backlog W4) | Planned | — |
+| Sigstore signing of graph artifacts (backlog W5) | Planned | — |
+| IDE panels + code lenses (backlog W1) | Planned | — |
 
 ## Contributing
 
-This is an active research project. The codebase evolves through a governance protocol (plan → audit → implement → substantiate) with cryptographic session seals. Contact the maintainers before submitting changes.
+This is an active research project. The codebase evolves through a governance protocol (plan → audit → implement → substantiate) with cryptographic session seals. See [CONTRIBUTING.md](CONTRIBUTING.md) for build/test instructions, the pre-commit hook setup, and the PR process. Contact the maintainers before submitting significant changes.
 
 ## License
 
@@ -445,7 +461,7 @@ This is an active research project. The codebase evolves through a governance pr
 ---
 
 <p align="center">
-  <em>170+ files. 224 tests. 108 governance entries. 3 languages. 15 edge types. 11 MCP tools.<br>
+  <em>198 files. 264 tests. 118 governance entries. 3 languages. 16 edge types. 11 MCP tools.<br>
   The graph fuses independent evidence into stronger signals.<br>
   The engine evolves. Beliefs become graph reality. Federation crosses boundaries.</em>
 </p>

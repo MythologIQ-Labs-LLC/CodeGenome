@@ -1,16 +1,22 @@
-# AI GOVERNANCE
+# AI assistant local state (never tracked)
 .agent/
 .claude/
-.failsafe/
 .qorelogic/
 CLAUDE.md
 GEMINI.md
 COPILOT.md
 CURSOR.md
 
-# Planning documents
-plan-*.md
-docs/
+# NOTE: docs/, plan-*.md, and .failsafe/ are deliberately TRACKED.
+# Governance, provenance, and planning artifacts are part of this
+# repository's public record — see README "Intent & Value Provenance".
+
+# Experiment run state (live, machine-generated; archives live in data/runs/)
+experiment_log.txt
+experiments.tsv
+experiments.checkpoint.json
+*.checkpoint.json
+experiments/*.tsv
 
 # IDE local settings
 .vscode/

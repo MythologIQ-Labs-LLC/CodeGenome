@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-08-11).** This blueprint was VETOed by audit (see docs/SHADOW_GENOME.md) and never revised; the work later shipped in modified form. Retained as historical record. File paths reference the pre-rename `codegenome-core/` layout, which no longer exists.
+
 # Plan: MCP Claude Code Integration — Read-Open, Write-Gated
 
 ## Open Questions
