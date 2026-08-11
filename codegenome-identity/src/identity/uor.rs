@@ -2,9 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// The atomic identity. Same bytes -> same address. Always.
 /// This is the puzzle piece's name — not its shape.
-#[derive(
-    Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct UorAddress(pub [u8; 32]);
 
 impl UorAddress {

@@ -48,7 +48,12 @@ impl<'a> LocalQueryContext<'a> {
                 .or_default()
                 .push((e.source, e.confidence, e.relation.clone()));
         }
-        Self { nodes, edges, fwd, rev }
+        Self {
+            nodes,
+            edges,
+            fwd,
+            rev,
+        }
     }
 }
 
@@ -107,10 +112,7 @@ fn filter_entries(
     entries
         .into_iter()
         .filter(|(_, conf, rel)| {
-            *conf >= min_confidence
-                && relation_filter
-                    .as_ref()
-                    .map_or(true, |f| f.contains(rel))
+            *conf >= min_confidence && relation_filter.as_ref().is_none_or(|f| f.contains(rel))
         })
         .collect()
 }

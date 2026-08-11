@@ -1,0 +1,11 @@
+# cargo-audit configuration.
+#
+# Every ignore below must be a triaged, time-boxed exception with a
+# stated remediation. CI's audit job FAILS on any advisory not listed
+# here, so a red audit job always means a NEW, untriaged advisory.
+#
+# Currently no exceptions: RUSTSEC-2026-0189 (rmcp DNS rebinding) was
+# resolved by the rmcp 3.x upgrade on 2026-08-11.
+
+[advisories]
+ignore = []

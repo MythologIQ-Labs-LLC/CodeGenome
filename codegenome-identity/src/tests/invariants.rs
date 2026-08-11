@@ -70,16 +70,16 @@ fn sample_edge(src: &[u8], tgt: &[u8]) -> Edge {
 #[test]
 fn node_roundtrip_serialization() {
     let node = sample_node(b"fn main()");
-    let encoded = bincode::serialize(&node).unwrap();
-    let decoded: Node = bincode::deserialize(&encoded).unwrap();
+    let encoded = crate::codec::to_vec(&node).unwrap();
+    let decoded: Node = crate::codec::from_slice(&encoded).unwrap();
     assert_eq!(node, decoded);
 }
 
 #[test]
 fn edge_roundtrip_serialization() {
     let edge = sample_edge(b"caller", b"callee");
-    let encoded = bincode::serialize(&edge).unwrap();
-    let decoded: Edge = bincode::deserialize(&encoded).unwrap();
+    let encoded = crate::codec::to_vec(&edge).unwrap();
+    let decoded: Edge = crate::codec::from_slice(&encoded).unwrap();
     assert_eq!(edge, decoded);
 }
 
@@ -187,19 +187,39 @@ proptest! {
 
 #[test]
 fn span_equality() {
-    let a = Span { start_byte: 0, end_byte: 10, start_line: 1, end_line: 1 };
-    let b = Span { start_byte: 0, end_byte: 10, start_line: 1, end_line: 1 };
-    let c = Span { start_byte: 5, end_byte: 15, start_line: 2, end_line: 3 };
+    let a = Span {
+        start_byte: 0,
+        end_byte: 10,
+        start_line: 1,
+        end_line: 1,
+    };
+    let b = Span {
+        start_byte: 0,
+        end_byte: 10,
+        start_line: 1,
+        end_line: 1,
+    };
+    let c = Span {
+        start_byte: 5,
+        end_byte: 15,
+        start_line: 2,
+        end_line: 3,
+    };
     assert_eq!(a, b);
     assert_ne!(a, c);
 }
 
 #[test]
 fn node_with_span_roundtrip() {
-    let span = Span { start_byte: 10, end_byte: 50, start_line: 3, end_line: 7 };
+    let span = Span {
+        start_byte: 10,
+        end_byte: 50,
+        start_line: 3,
+        end_line: 7,
+    };
     let node = sample_node_with_span(b"fn example()", span);
-    let encoded = bincode::serialize(&node).unwrap();
-    let decoded: Node = bincode::deserialize(&encoded).unwrap();
+    let encoded = crate::codec::to_vec(&node).unwrap();
+    let decoded: Node = crate::codec::from_slice(&encoded).unwrap();
     assert_eq!(node, decoded);
     assert_eq!(decoded.span, Some(span));
 }
@@ -220,8 +240,8 @@ fn flow_relation_variants_roundtrip() {
             provenance: sample_provenance(),
             evidence: vec![],
         };
-        let encoded = bincode::serialize(&edge).unwrap();
-        let decoded: Edge = bincode::deserialize(&encoded).unwrap();
+        let encoded = crate::codec::to_vec(&edge).unwrap();
+        let decoded: Edge = crate::codec::from_slice(&encoded).unwrap();
         assert_eq!(edge.relation, decoded.relation);
     }
 }

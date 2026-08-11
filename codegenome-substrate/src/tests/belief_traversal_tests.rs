@@ -51,7 +51,10 @@ fn upstream_from_subject_reaches_belief() {
     let result = traversal::execute(&q, &ctx);
 
     let has_belief = result.nodes.iter().any(|n| n.kind == NodeKind::Belief);
-    assert!(has_belief, "Upstream from fn_x should reach the Belief node");
+    assert!(
+        has_belief,
+        "Upstream from fn_x should reach the Belief node"
+    );
 }
 
 #[test]
@@ -61,10 +64,7 @@ fn downstream_from_belief_reaches_subject() {
     let edges = bedges;
 
     let ctx = LocalQueryContext::new(&nodes, &edges);
-    let q = Query::downstream(
-        addr(&format!("belief:{}", "fn_x is dead code")),
-        5,
-    );
+    let q = Query::downstream(addr(&format!("belief:{}", "fn_x is dead code")), 5);
     let result = traversal::execute(&q, &ctx);
 
     let has_subject = result.nodes.iter().any(|n| n.address == addr("fn_x"));
@@ -88,7 +88,10 @@ fn supports_edge_traversable_from_belief() {
     };
     let result = traversal::execute(&q, &ctx);
 
-    let has_evidence = result.nodes.iter().any(|n| n.address == addr("ev_no_calls"));
+    let has_evidence = result
+        .nodes
+        .iter()
+        .any(|n| n.address == addr("ev_no_calls"));
     assert!(has_evidence, "Supports edge should reach evidence node");
 }
 
@@ -116,5 +119,8 @@ fn confidence_filtering_excludes_low_belief() {
     let result = traversal::execute(&q, &ctx);
 
     let has_belief = result.nodes.iter().any(|n| n.kind == NodeKind::Belief);
-    assert!(!has_belief, "0.5 belief should be excluded by 0.6 threshold");
+    assert!(
+        !has_belief,
+        "0.5 belief should be excluded by 0.6 threshold"
+    );
 }

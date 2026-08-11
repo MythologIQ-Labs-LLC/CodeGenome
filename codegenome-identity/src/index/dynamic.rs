@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::graph::edge::{Edge, Relation};
 use crate::graph::node::{Provenance, Source, Timestamp};
-use crate::identity::{address_of, UorAddress};
+use crate::identity::UorAddress;
 
 /// Result of runtime trace ingestion.
 pub struct TraceResult {
@@ -17,8 +17,7 @@ pub fn ingest_trace(
     trace_path: &Path,
     files: &[(PathBuf, Vec<u8>)],
 ) -> Result<TraceResult, String> {
-    let file =
-        std::fs::File::open(trace_path).map_err(|e| e.to_string())?;
+    let file = std::fs::File::open(trace_path).map_err(|e| e.to_string())?;
     let reader = BufReader::new(file);
     let names = build_name_index(files);
     let prov = Provenance {
@@ -65,26 +64,18 @@ fn parse_trace_line(
     })
 }
 
-fn build_name_index(
-    files: &[(PathBuf, Vec<u8>)],
-) -> HashMap<String, UorAddress> {
+fn build_name_index(files: &[(PathBuf, Vec<u8>)]) -> HashMap<String, UorAddress> {
+    use crate::lang::LanguageSupport;
+    let backend = crate::lang::rust::RustLanguage;
     let mut index = HashMap::new();
-    for (_, source) in files {
-        let Some(tree) = parse_file(source) else { continue };
-        let root = tree.root_node();
-        let mut cursor = root.walk();
-        for child in root.children(&mut cursor) {
-            if let Some(name) = child
-                .child_by_field_name("name")
-                .and_then(|n| n.utf8_text(source).ok())
-            {
-                let content =
-                    format!("{}:{}", child.kind(), name);
-                index.insert(
-                    name.to_string(),
-                    address_of(content.as_bytes()),
-                );
-            }
+    for (path, source) in files {
+        let Some(tree) = parse_file(source) else {
+            continue;
+        };
+        for sym in backend.extract_symbols(source, &tree) {
+            let addr =
+                crate::lang::graph_builder::symbol_address(path, &sym.source_kind, &sym.name);
+            index.insert(sym.name.clone(), addr);
         }
     }
     index

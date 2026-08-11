@@ -1,7 +1,5 @@
 use crate::graph::edge::{Edge, Relation};
-use crate::graph::node::{
-    Node, NodeKind, Provenance, Timestamp,
-};
+use crate::graph::node::{Node, NodeKind, Provenance, Timestamp};
 use crate::graph::overlay::{Overlay, OverlayKind};
 use crate::identity::address_of;
 use crate::index::merger::fuse;

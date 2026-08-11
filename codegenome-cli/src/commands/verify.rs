@@ -15,7 +15,10 @@ pub fn run(log_file: &str) {
                 .last()
                 .map(|r| r.chain_hash.as_str())
                 .unwrap_or("(empty)");
-            println!("Chain verified. {} entries. Last hash: {last_hash}", results.len());
+            println!(
+                "Chain verified. {} entries. Last hash: {last_hash}",
+                results.len()
+            );
         }
         Err(e) => {
             eprintln!("Verification FAILED: {e}");

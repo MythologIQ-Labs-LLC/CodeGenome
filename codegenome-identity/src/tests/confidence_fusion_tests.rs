@@ -1,6 +1,4 @@
-use crate::confidence::{
-    impact_score, multi_path_confidence, path_confidence,
-};
+use crate::confidence::{impact_score, multi_path_confidence, path_confidence};
 use crate::graph::edge::{Edge, Relation};
 use crate::graph::node::{Provenance, Timestamp};
 use crate::identity::address_of;
@@ -32,16 +30,12 @@ fn multi_edge_path_confidence_is_product() {
     let e1 = make_edge(0.8);
     let e2 = make_edge(0.5);
     let expected = 0.8 * 0.5;
-    assert!(
-        (path_confidence(&[&e1, &e2]) - expected).abs() < 1e-10
-    );
+    assert!((path_confidence(&[&e1, &e2]) - expected).abs() < 1e-10);
 }
 
 #[test]
 fn empty_multi_path_is_zero() {
-    assert!(
-        (multi_path_confidence(&[]) - 0.0).abs() < f64::EPSILON
-    );
+    assert!((multi_path_confidence(&[]) - 0.0).abs() < f64::EPSILON);
 }
 
 #[test]

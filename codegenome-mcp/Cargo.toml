@@ -1,15 +1,18 @@
 [package]
 name = "codegenome-mcp"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 description = "MCP tool server for the Unified Code Reality Graph"
 
 [dependencies]
 codegenome-identity = { path = "../codegenome-identity" }
 codegenome-substrate = { path = "../codegenome-substrate" }
-rmcp = { version = "0.16", features = ["server", "transport-io", "macros"] }
-git2 = "0.20"
-schemars = "0.8"
+rmcp = { version = "3", features = ["server", "transport-io"] }
+git2 = "0.21"
+schemars = "1"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

@@ -88,10 +88,7 @@ fn ts_if_else_produces_branch_edges() {
     let tree = parse_ts(code);
     let lang = TypeScriptLanguage::ts();
     let edges = lang.extract_control_flow(code, &tree);
-    let branches: Vec<_> = edges
-        .iter()
-        .filter(|e| e.kind == CfKind::Branch)
-        .collect();
+    let branches: Vec<_> = edges.iter().filter(|e| e.kind == CfKind::Branch).collect();
     assert!(branches.len() >= 2, "Expected >=2 Branch edges");
 }
 

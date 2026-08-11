@@ -48,10 +48,7 @@ fn k_nearest_empty_entries_returns_empty() {
 
 #[test]
 fn k_nearest_missing_query_returns_empty() {
-    let entries = vec![
-        entry("A", vec![1.0, 0.0]),
-        entry("B", vec![0.0, 1.0]),
-    ];
+    let entries = vec![entry("A", vec![1.0, 0.0]), entry("B", vec![0.0, 1.0])];
     let result = k_nearest(address_of(b"missing"), &entries, 2);
     assert!(result.is_empty());
 }

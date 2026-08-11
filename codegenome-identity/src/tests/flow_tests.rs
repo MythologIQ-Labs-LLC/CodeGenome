@@ -20,7 +20,10 @@ fn sequential_statements_produce_control_flow() {
         .iter()
         .filter(|e| e.relation == Relation::ControlFlow)
         .collect();
-    assert!(!cf.is_empty(), "Sequential statements should produce ControlFlow edges");
+    assert!(
+        !cf.is_empty(),
+        "Sequential statements should produce ControlFlow edges"
+    );
 }
 
 #[test]
@@ -41,7 +44,11 @@ fn f() {
         .filter(|e| e.relation == Relation::ControlFlow)
         .collect();
     // if-else produces at least: entry→if, if→then, if→else
-    assert!(cf.len() >= 2, "If-else should produce branch edges, got {}", cf.len());
+    assert!(
+        cf.len() >= 2,
+        "If-else should produce branch edges, got {}",
+        cf.len()
+    );
 }
 
 #[test]
@@ -79,7 +86,11 @@ fn f(x: i32) {
         .iter()
         .filter(|e| e.relation == Relation::ControlFlow)
         .collect();
-    assert!(cf.len() >= 2, "Match arms should produce branch edges, got {}", cf.len());
+    assert!(
+        cf.len() >= 2,
+        "Match arms should produce branch edges, got {}",
+        cf.len()
+    );
 }
 
 #[test]
@@ -96,7 +107,10 @@ fn f() {
         .iter()
         .filter(|e| e.relation == Relation::DataFlow)
         .collect();
-    assert!(!df.is_empty(), "Let binding with use should produce DataFlow edge");
+    assert!(
+        !df.is_empty(),
+        "Let binding with use should produce DataFlow edge"
+    );
 }
 
 #[test]
@@ -171,7 +185,7 @@ fn caller() {
     let impact = propagate_impact(&[flow_node.address], &overlays);
 
     assert!(
-        impact.len() >= 1,
+        !impact.is_empty(),
         "Impact should propagate across three overlays"
     );
 }
@@ -183,7 +197,7 @@ fn collect_rust_files(dir: &std::path::Path) -> Vec<(PathBuf, Vec<u8>)> {
             let path = entry.path();
             if path.is_dir() {
                 files.extend(collect_rust_files(&path));
-            } else if path.extension().map_or(false, |e| e == "rs") {
+            } else if path.extension().is_some_and(|e| e == "rs") {
                 if let Ok(content) = std::fs::read(&path) {
                     files.push((path, content));
                 }

@@ -2,7 +2,6 @@ use crate::federation::query_context::FederatedQueryContext;
 use codegenome_identity::graph::edge::{Edge, Relation};
 use codegenome_identity::graph::node::{Node, NodeKind, Provenance, Timestamp};
 use codegenome_identity::graph::query::Query;
-use codegenome_identity::graph::query_context::QueryContext;
 use codegenome_identity::graph::traversal;
 use codegenome_identity::identity::address_of;
 
@@ -40,19 +39,16 @@ fn downstream_crosses_repo_boundary_via_symbol_edge() {
     // Cross-repo: A_caller → B_helper (Imports at 0.7)
     // Repo B: B_helper (isolated node)
     let nodes = vec![node("A_fn"), node("A_caller"), node("B_helper")];
-    let local = vec![
-        edge("A_fn", "A_caller", 1.0, Relation::Calls),
-    ];
-    let cross = vec![
-        edge("A_caller", "B_helper", 0.7, Relation::Imports),
-    ];
+    let local = vec![edge("A_fn", "A_caller", 1.0, Relation::Calls)];
+    let cross = vec![edge("A_caller", "B_helper", 0.7, Relation::Imports)];
 
     let ctx = FederatedQueryContext::from_parts(nodes, local, cross);
     let q = Query::downstream(addr("A_fn"), 10);
     let result = traversal::execute(&q, &ctx);
 
     assert_eq!(
-        result.nodes.len(), 3,
+        result.nodes.len(),
+        3,
         "Should traverse A_fn → A_caller → B_helper"
     );
 }
@@ -60,12 +56,8 @@ fn downstream_crosses_repo_boundary_via_symbol_edge() {
 #[test]
 fn min_confidence_blocks_cross_repo_bridge() {
     let nodes = vec![node("A_fn"), node("A_caller"), node("B_helper")];
-    let local = vec![
-        edge("A_fn", "A_caller", 1.0, Relation::Calls),
-    ];
-    let cross = vec![
-        edge("A_caller", "B_helper", 0.7, Relation::Imports),
-    ];
+    let local = vec![edge("A_fn", "A_caller", 1.0, Relation::Calls)];
+    let cross = vec![edge("A_caller", "B_helper", 0.7, Relation::Imports)];
 
     let ctx = FederatedQueryContext::from_parts(nodes, local, cross);
     let q = Query {
@@ -78,7 +70,8 @@ fn min_confidence_blocks_cross_repo_bridge() {
     let result = traversal::execute(&q, &ctx);
 
     assert_eq!(
-        result.nodes.len(), 2,
+        result.nodes.len(),
+        2,
         "Should NOT cross 0.7 bridge with min_confidence 0.8"
     );
 }
@@ -87,9 +80,7 @@ fn min_confidence_blocks_cross_repo_bridge() {
 fn upstream_propagates_into_importing_repo() {
     let nodes = vec![node("A_caller"), node("B_helper")];
     let local = vec![];
-    let cross = vec![
-        edge("A_caller", "B_helper", 0.7, Relation::Imports),
-    ];
+    let cross = vec![edge("A_caller", "B_helper", 0.7, Relation::Imports)];
 
     let ctx = FederatedQueryContext::from_parts(nodes, local, cross);
     let q = Query {
@@ -102,7 +93,8 @@ fn upstream_propagates_into_importing_repo() {
     let result = traversal::execute(&q, &ctx);
 
     assert_eq!(
-        result.nodes.len(), 2,
+        result.nodes.len(),
+        2,
         "Upstream from B_helper should reach A_caller"
     );
 }
@@ -110,9 +102,7 @@ fn upstream_propagates_into_importing_repo() {
 #[test]
 fn no_cross_edges_stays_within_repo() {
     let nodes = vec![node("A"), node("B"), node("C")];
-    let local = vec![
-        edge("A", "B", 1.0, Relation::Calls),
-    ];
+    let local = vec![edge("A", "B", 1.0, Relation::Calls)];
     let cross: Vec<Edge> = vec![];
 
     let ctx = FederatedQueryContext::from_parts(nodes, local, cross);

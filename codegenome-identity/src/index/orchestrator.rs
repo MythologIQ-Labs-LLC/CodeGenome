@@ -19,10 +19,7 @@ pub struct PipelineConfig {
 }
 
 pub fn run(config: &PipelineConfig) -> Result<IndexResult, String> {
-    let freshness = meta::check_freshness(
-        &config.store_dir,
-        &config.source_dir,
-    );
+    let freshness = meta::check_freshness(&config.store_dir, &config.source_dir);
     if freshness.is_fresh {
         if let Ok(Some(m)) = meta::load(&config.store_dir) {
             return Ok(IndexResult {
@@ -66,26 +63,17 @@ pub fn run(config: &PipelineConfig) -> Result<IndexResult, String> {
 
     rayon::scope(|s| {
         s.spawn(|_| {
-            let resolved = resolver::resolve_multi(
-                parsed_ref, groups_ref, langs_ref,
-            );
-            *semantic.lock().unwrap() =
-                Some(SemanticOverlay::from_resolved(&resolved));
+            let resolved = resolver::resolve_multi(parsed_ref, groups_ref, langs_ref);
+            *semantic.lock().unwrap() = Some(SemanticOverlay::from_resolved(&resolved));
         });
         s.spawn(|_| {
-            let result = flow::extract_flow_multi(
-                groups_ref, langs_ref,
-            );
-            *flow_overlay.lock().unwrap() =
-                Some(FlowOverlay::from_flow_result(&result));
+            let result = flow::extract_flow_multi(groups_ref, langs_ref);
+            *flow_overlay.lock().unwrap() = Some(FlowOverlay::from_flow_result(&result));
         });
         if let Some(ref tp) = trace {
             s.spawn(|_| {
-                if let Ok(result) =
-                    dynamic::ingest_trace(tp, files_ref)
-                {
-                    *runtime.lock().unwrap() =
-                        Some(RuntimeOverlay::from_trace(&result));
+                if let Ok(result) = dynamic::ingest_trace(tp, files_ref) {
+                    *runtime.lock().unwrap() = Some(RuntimeOverlay::from_trace(&result));
                 }
             });
         }
@@ -110,8 +98,7 @@ pub fn run(config: &PipelineConfig) -> Result<IndexResult, String> {
         fused.edges(),
     )?;
 
-    let source_hashes =
-        meta::hash_source_files(&config.source_dir);
+    let source_hashes = meta::hash_source_files(&config.source_dir);
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -147,16 +134,13 @@ fn parse_with_cache_multi(
         let hash = blake3::hash(source).to_hex()[..16].to_string();
         if let Some(entry) = cache.get(path, &hash) {
             if let (Ok(nodes), Ok(edges)) = (
-                bincode::deserialize(&entry.nodes_bin),
-                bincode::deserialize(&entry.edges_bin),
+                crate::codec::from_slice(&entry.nodes_bin),
+                crate::codec::from_slice(&entry.edges_bin),
             ) {
-                let file_content =
-                    format!("file:{}", path.display());
+                let file_content = format!("file:{}", path.display());
                 parsed.push(parser::ParsedFile {
                     path: path.clone(),
-                    file_address: crate::identity::address_of(
-                        file_content.as_bytes(),
-                    ),
+                    file_address: crate::identity::address_of(file_content.as_bytes()),
                     content_hash: crate::identity::address_of(source),
                     nodes,
                     edges,
@@ -168,12 +152,12 @@ fn parse_with_cache_multi(
     }
 
     if !dirty.is_empty() {
-        let dirty_files: Vec<_> =
-            dirty.iter().map(|(p, s, _)| (p.clone(), s.clone())).collect();
-        let dirty_groups =
-            crate::lang::detect::group_by_language(&dirty_files);
-        let fresh =
-            parser::parse_files_multi(&dirty_groups, languages);
+        let dirty_files: Vec<_> = dirty
+            .iter()
+            .map(|(p, s, _)| (p.clone(), s.clone()))
+            .collect();
+        let dirty_groups = crate::lang::detect::group_by_language(&dirty_files);
+        let fresh = parser::parse_files_multi(&dirty_groups, languages);
         for pf in fresh {
             let hash = dirty
                 .iter()
@@ -182,10 +166,8 @@ fn parse_with_cache_multi(
                 .unwrap_or_default();
             let entry = CachedEntry {
                 content_hash: hash,
-                nodes_bin: bincode::serialize(&pf.nodes)
-                    .unwrap_or_default(),
-                edges_bin: bincode::serialize(&pf.edges)
-                    .unwrap_or_default(),
+                nodes_bin: crate::codec::to_vec(&pf.nodes).unwrap_or_default(),
+                edges_bin: crate::codec::to_vec(&pf.edges).unwrap_or_default(),
             };
             let _ = cache.put(&pf.path, &entry);
             parsed.push(pf);
@@ -195,7 +177,12 @@ fn parse_with_cache_multi(
     parsed
 }
 
-fn collect_source_files(dir: &Path) -> Vec<(PathBuf, Vec<u8>)> {
+/// Recursively collect all supported source files, skipping excluded
+/// directories (hidden, target/, node_modules/, __pycache__/, venv/,
+/// vendor/). Public so callers outside the pipeline (e.g. the
+/// experiment engine's fitness functions) collect the same file set
+/// the indexer sees.
+pub fn collect_source_files(dir: &Path) -> Vec<(PathBuf, Vec<u8>)> {
     let supported = crate::lang::detect::supported_extensions();
     let mut files = Vec::new();
     let Ok(entries) = std::fs::read_dir(dir) else {
@@ -204,7 +191,13 @@ fn collect_source_files(dir: &Path) -> Vec<(PathBuf, Vec<u8>)> {
     for entry in entries.flatten() {
         let path = entry.path();
         if path.is_dir() {
-            files.extend(collect_source_files(&path));
+            let excluded = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(crate::lang::detect::is_excluded_dir);
+            if !excluded {
+                files.extend(collect_source_files(&path));
+            }
         } else if path
             .extension()
             .and_then(|e| e.to_str())

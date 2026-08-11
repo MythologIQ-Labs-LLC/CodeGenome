@@ -38,10 +38,7 @@ fn print_table(entries: &[(String, usize, usize)]) {
 }
 
 fn show_freshness(store_dir: &str) {
-    let report = meta::check_freshness(
-        std::path::Path::new(store_dir),
-        std::path::Path::new("."),
-    );
+    let report = meta::check_freshness(std::path::Path::new(store_dir), std::path::Path::new("."));
     if report.last_indexed == 0 {
         println!("Freshness: NOT INDEXED");
     } else if report.is_fresh {
@@ -62,5 +59,8 @@ fn print_json(entries: &[(String, usize, usize)]) {
             serde_json::json!({"overlay": name, "nodes": nodes, "edges": edges})
         })
         .collect();
-    println!("{}", serde_json::to_string_pretty(&items).unwrap_or_default());
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&items).unwrap_or_default()
+    );
 }

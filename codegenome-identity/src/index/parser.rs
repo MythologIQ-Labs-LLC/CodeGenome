@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use crate::graph::edge::{Edge, Relation};
-use crate::graph::node::{Node, NodeKind, Provenance, Source, Span, Timestamp};
+use crate::graph::node::{Node, NodeKind, Provenance, Source, Timestamp};
 use crate::identity::{address_of, UorAddress};
+use crate::lang::graph_builder::symbol_address;
 use crate::lang::LanguageSupport;
 
 /// A parsed source file: file-level node plus extracted symbols.
@@ -19,14 +20,15 @@ pub struct ParsedFile {
 
 /// Parse multiple Rust source files (backward-compatible wrapper).
 pub fn parse_files(files: &[(PathBuf, Vec<u8>)]) -> Vec<ParsedFile> {
+    let backend = crate::lang::rust::RustLanguage;
     let mut parser = tree_sitter::Parser::new();
     parser
-        .set_language(&tree_sitter_rust::LANGUAGE.into())
+        .set_language(&backend.language())
         .expect("Failed to load Rust grammar");
 
     files
         .iter()
-        .map(|(path, source)| parse_one(&mut parser, path, source))
+        .map(|(path, source)| parse_one(&mut parser, &backend, path, source))
         .collect()
 }
 
@@ -36,10 +38,8 @@ pub fn parse_files_multi(
     file_groups: &HashMap<&str, Vec<(PathBuf, Vec<u8>)>>,
     languages: &[Box<dyn LanguageSupport>],
 ) -> Vec<ParsedFile> {
-    let lang_map: HashMap<&str, &dyn LanguageSupport> = languages
-        .iter()
-        .map(|l| (l.name(), l.as_ref()))
-        .collect();
+    let lang_map: HashMap<&str, &dyn LanguageSupport> =
+        languages.iter().map(|l| (l.name(), l.as_ref())).collect();
 
     let mut parsed = Vec::new();
     for (lang_name, files) in file_groups {
@@ -51,15 +51,19 @@ pub fn parse_files_multi(
             continue;
         }
         for (path, source) in files {
-            parsed.push(parse_one(&mut parser, path, source));
+            parsed.push(parse_one(&mut parser, backend, path, source));
         }
     }
     parsed
 }
 
-/// Parse a single file with an existing parser instance.
+/// Parse a single file with an existing parser instance. Symbol
+/// extraction is delegated to the language backend, so every language
+/// (not just Rust) contributes symbol nodes, and addresses come from
+/// the one shared `symbol_address` function.
 fn parse_one(
     parser: &mut tree_sitter::Parser,
+    backend: &dyn LanguageSupport,
     path: &Path,
     source: &[u8],
 ) -> ParsedFile {
@@ -69,7 +73,7 @@ fn parse_one(
 
     let provenance = Provenance {
         source: Source::ToolOutput,
-        actor: "tree-sitter-rust".into(),
+        actor: format!("tree-sitter-{}", backend.name()),
         timestamp: Timestamp(0),
         justification: None,
     };
@@ -86,10 +90,28 @@ fn parse_one(
     let mut edges = Vec::new();
 
     if let Some(tree) = parser.parse(source, None) {
-        let (sym_nodes, sym_edges) =
-            extract_symbols(file_address, source, &tree, &provenance);
-        nodes.extend(sym_nodes);
-        edges.extend(sym_edges);
+        for sym in backend.extract_symbols(source, &tree) {
+            let address = symbol_address(path, &sym.source_kind, &sym.name);
+            let start = sym.span.start_byte as usize;
+            let end = (sym.span.end_byte as usize).min(source.len());
+            nodes.push(Node {
+                address,
+                kind: NodeKind::Symbol,
+                provenance: provenance.clone(),
+                confidence: 1.0,
+                created_at: provenance.timestamp,
+                content_hash: address_of(&source[start..end]),
+                span: Some(sym.span),
+            });
+            edges.push(Edge {
+                source: file_address,
+                target: address,
+                relation: Relation::Contains,
+                confidence: 1.0,
+                provenance: provenance.clone(),
+                evidence: vec![],
+            });
+        }
     }
 
     ParsedFile {
@@ -98,76 +120,5 @@ fn parse_one(
         content_hash,
         nodes,
         edges,
-    }
-}
-
-const SYMBOL_KINDS: &[&str] = &[
-    "function_item",
-    "struct_item",
-    "enum_item",
-    "impl_item",
-    "use_declaration",
-    "mod_item",
-    "trait_item",
-];
-
-fn extract_symbols(
-    file_address: UorAddress,
-    source: &[u8],
-    tree: &tree_sitter::Tree,
-    provenance: &Provenance,
-) -> (Vec<Node>, Vec<Edge>) {
-    let mut nodes = Vec::new();
-    let mut edges = Vec::new();
-    let root = tree.root_node();
-    let mut cursor = root.walk();
-
-    for child in root.children(&mut cursor) {
-        if !SYMBOL_KINDS.contains(&child.kind()) {
-            continue;
-        }
-        let name = symbol_name(&child, source);
-        let span = node_span(&child);
-        let content = format!("{}:{}", child.kind(), name);
-        let address = address_of(content.as_bytes());
-
-        nodes.push(Node {
-            address,
-            kind: NodeKind::Symbol,
-            provenance: provenance.clone(),
-            confidence: 1.0,
-            created_at: provenance.timestamp,
-            content_hash: address_of(
-                &source[child.start_byte()..child.end_byte()],
-            ),
-            span: Some(span),
-        });
-
-        edges.push(Edge {
-            source: file_address,
-            target: address,
-            relation: Relation::Contains,
-            confidence: 1.0,
-            provenance: provenance.clone(),
-            evidence: vec![],
-        });
-    }
-
-    (nodes, edges)
-}
-
-fn symbol_name(node: &tree_sitter::Node, source: &[u8]) -> String {
-    node.child_by_field_name("name")
-        .and_then(|n| n.utf8_text(source).ok())
-        .unwrap_or(node.kind())
-        .to_string()
-}
-
-fn node_span(node: &tree_sitter::Node) -> Span {
-    Span {
-        start_byte: node.start_byte() as u32,
-        end_byte: node.end_byte() as u32,
-        start_line: node.start_position().row as u32 + 1,
-        end_line: node.end_position().row as u32 + 1,
     }
 }

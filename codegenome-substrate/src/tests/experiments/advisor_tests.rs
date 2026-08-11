@@ -22,8 +22,14 @@ fn sample_results() -> Vec<ExperimentResult> {
 fn build_prompt_includes_history() {
     let results = sample_results();
     let prompt = build_prompt(&results, &["ImpactAccuracy", "PropagationDepth"]);
-    assert!(prompt.contains("0.3000"), "Prompt should contain fitness values");
-    assert!(prompt.contains("iter 0"), "Prompt should contain descriptions");
+    assert!(
+        prompt.contains("0.3000"),
+        "Prompt should contain fitness values"
+    );
+    assert!(
+        prompt.contains("iter 0"),
+        "Prompt should contain descriptions"
+    );
     assert!(prompt.contains("0.9000"), "Prompt should contain stability");
 }
 
@@ -31,11 +37,17 @@ fn build_prompt_includes_history() {
 fn build_prompt_includes_available_actions() {
     let results = sample_results();
     let prompt = build_prompt(&results, &["ImpactAccuracy", "PropagationDepth"]);
-    assert!(prompt.contains("SWITCH_FITNESS"), "Should list SWITCH_FITNESS");
+    assert!(
+        prompt.contains("SWITCH_FITNESS"),
+        "Should list SWITCH_FITNESS"
+    );
     assert!(prompt.contains("WIDEN"), "Should list WIDEN");
     assert!(prompt.contains("RESTART"), "Should list RESTART");
     assert!(prompt.contains("CONTINUE"), "Should list CONTINUE");
-    assert!(prompt.contains("PropagationDepth"), "Should list available fitness functions");
+    assert!(
+        prompt.contains("PropagationDepth"),
+        "Should list available fitness functions"
+    );
 }
 
 #[test]

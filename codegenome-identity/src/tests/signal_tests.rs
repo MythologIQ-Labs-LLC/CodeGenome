@@ -18,9 +18,15 @@ struct Chain {
 }
 
 impl Overlay for Chain {
-    fn kind(&self) -> OverlayKind { OverlayKind::Syntax }
-    fn nodes(&self) -> &[Node] { &self.nodes }
-    fn edges(&self) -> &[Edge] { &self.edges }
+    fn kind(&self) -> OverlayKind {
+        OverlayKind::Syntax
+    }
+    fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+    fn edges(&self) -> &[Edge] {
+        &self.edges
+    }
     fn ground_truth(&self) -> crate::measurement::GroundTruthLevel {
         crate::measurement::GroundTruthLevel::Constructible
     }
@@ -52,18 +58,17 @@ fn make_node(name: &str) -> Node {
 fn linear_chain() -> Chain {
     Chain {
         nodes: vec![make_node("A"), make_node("B"), make_node("C")],
-        edges: vec![
-            make_edge("A", "B", 0.5),
-            make_edge("B", "C", 0.5),
-        ],
+        edges: vec![make_edge("A", "B", 0.5), make_edge("B", "C", 0.5)],
     }
 }
 
 fn diamond() -> Chain {
     Chain {
         nodes: vec![
-            make_node("A"), make_node("B"),
-            make_node("C"), make_node("D"),
+            make_node("A"),
+            make_node("B"),
+            make_node("C"),
+            make_node("D"),
         ],
         edges: vec![
             make_edge("A", "B", 0.9),
@@ -94,11 +99,7 @@ fn topo_sort_linear_forward() {
 #[test]
 fn topo_sort_diamond() {
     let d = diamond();
-    let sorted = topological_sort(
-        &[addr("A")],
-        &[&d as &dyn Overlay],
-        Direction::Downstream,
-    );
+    let sorted = topological_sort(&[addr("A")], &[&d as &dyn Overlay], Direction::Downstream);
     assert_eq!(sorted.len(), 4);
     let a_pos = sorted.iter().position(|a| *a == addr("A")).unwrap();
     let d_pos = sorted.iter().position(|a| *a == addr("D")).unwrap();
@@ -110,10 +111,7 @@ fn topo_sort_diamond() {
 #[test]
 fn impact_linear_attenuation() {
     let chain = linear_chain();
-    let impact = propagate_impact(
-        &[addr("A")],
-        &[&chain as &dyn Overlay],
-    );
+    let impact = propagate_impact(&[addr("A")], &[&chain as &dyn Overlay]);
     assert!((impact[&addr("A")] - 1.0).abs() < f64::EPSILON);
     assert!((impact[&addr("B")] - 0.5).abs() < f64::EPSILON);
     assert!((impact[&addr("C")] - 0.25).abs() < f64::EPSILON);
@@ -122,10 +120,7 @@ fn impact_linear_attenuation() {
 #[test]
 fn impact_diamond_max_path() {
     let d = diamond();
-    let impact = propagate_impact(
-        &[addr("A")],
-        &[&d as &dyn Overlay],
-    );
+    let impact = propagate_impact(&[addr("A")], &[&d as &dyn Overlay]);
     // Path A→B→D: 0.9*0.8 = 0.72
     // Path A→C→D: 0.5*0.3 = 0.15
     // max = 0.72
@@ -142,20 +137,17 @@ fn impact_isolation_unreachable() {
     };
     extended.nodes.push(isolated);
 
-    let impact = propagate_impact(
-        &[addr("A")],
-        &[&extended as &dyn Overlay],
-    );
+    let impact = propagate_impact(&[addr("A")], &[&extended as &dyn Overlay]);
     assert!(!impact.contains_key(&addr("X")));
 }
 
 #[test]
 fn impact_empty_graph() {
-    let empty = Chain { nodes: vec![], edges: vec![] };
-    let impact = propagate_impact(
-        &[addr("A")],
-        &[&empty as &dyn Overlay],
-    );
+    let empty = Chain {
+        nodes: vec![],
+        edges: vec![],
+    };
+    let impact = propagate_impact(&[addr("A")], &[&empty as &dyn Overlay]);
     assert!(impact.is_empty() || impact.len() == 1);
 }
 
@@ -164,10 +156,7 @@ fn impact_empty_graph() {
 #[test]
 fn staleness_backward() {
     let chain = linear_chain();
-    let staleness = propagate_staleness(
-        &[addr("C")],
-        &[&chain as &dyn Overlay],
-    );
+    let staleness = propagate_staleness(&[addr("C")], &[&chain as &dyn Overlay]);
     assert!((staleness[&addr("C")] - 1.0).abs() < f64::EPSILON);
     assert!((staleness[&addr("B")] - 0.5).abs() < f64::EPSILON);
     assert!((staleness[&addr("A")] - 0.25).abs() < f64::EPSILON);
@@ -177,19 +166,10 @@ fn staleness_backward() {
 fn staleness_attenuation_matches_impact() {
     // Same graph, reversed direction, same math
     let chain = linear_chain();
-    let impact = propagate_impact(
-        &[addr("A")],
-        &[&chain as &dyn Overlay],
-    );
-    let staleness = propagate_staleness(
-        &[addr("C")],
-        &[&chain as &dyn Overlay],
-    );
+    let impact = propagate_impact(&[addr("A")], &[&chain as &dyn Overlay]);
+    let staleness = propagate_staleness(&[addr("C")], &[&chain as &dyn Overlay]);
     // Impact A→C = 0.25, Staleness C→A = 0.25
-    assert!(
-        (impact[&addr("C")] - staleness[&addr("A")]).abs()
-            < f64::EPSILON
-    );
+    assert!((impact[&addr("C")] - staleness[&addr("A")]).abs() < f64::EPSILON);
 }
 
 // --- Self-index integration ---
@@ -199,14 +179,13 @@ fn impact_on_self_index_is_non_trivial() {
     let files = crate::tests::self_index::load_own_source();
     let overlay = crate::overlay::syntax::parse_rust_files(&files);
 
-    let first_symbol = overlay.nodes().iter()
+    let first_symbol = overlay
+        .nodes()
+        .iter()
         .find(|n| n.kind == NodeKind::Symbol)
         .expect("Should have symbols");
 
-    let impact = propagate_impact(
-        &[first_symbol.address],
-        &[&overlay as &dyn Overlay],
-    );
+    let impact = propagate_impact(&[first_symbol.address], &[&overlay as &dyn Overlay]);
     // Impact map should contain at least the changed node
     assert!(!impact.is_empty());
 }

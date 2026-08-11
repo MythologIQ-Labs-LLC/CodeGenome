@@ -171,3 +171,93 @@ fn main() {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::CommandFactory;
+
+    #[test]
+    fn cli_arg_tree_is_valid() {
+        // Catches conflicting/duplicate/malformed arg definitions for
+        // every subcommand at test time instead of at first invocation.
+        Cli::command().debug_assert();
+    }
+
+    #[test]
+    fn all_eleven_subcommands_parse() {
+        let cases: &[&[&str]] = &[
+            &["codegenome", "index", "--source-dir", "src"],
+            &["codegenome", "query", "--file", "a.rs", "--line", "4"],
+            &["codegenome", "status", "--json"],
+            &["codegenome", "serve"],
+            &["codegenome", "init"],
+            &["codegenome", "verify"],
+            &["codegenome", "analyze", "--json"],
+            &[
+                "codegenome",
+                "experiment",
+                "--no-model",
+                "--max-iterations",
+                "5",
+            ],
+            &["codegenome", "federate", "--workspace-config", "ws.toml"],
+            &["codegenome", "visualize", "--min-confidence", "0.5"],
+            &["codegenome", "workspace-report"],
+        ];
+        for args in cases {
+            assert!(
+                Cli::try_parse_from(*args).is_ok(),
+                "failed to parse: {args:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn query_requires_file_and_line() {
+        assert!(Cli::try_parse_from(["codegenome", "query"]).is_err());
+        assert!(Cli::try_parse_from(["codegenome", "query", "--file", "a.rs"]).is_err());
+    }
+
+    #[test]
+    fn experiment_defaults_are_stable() {
+        let cli = Cli::try_parse_from(["codegenome", "experiment"]).unwrap();
+        let Commands::Experiment {
+            source_dir,
+            log_file,
+            max_iterations,
+            no_model,
+            ..
+        } = cli.command
+        else {
+            panic!("wrong variant");
+        };
+        assert_eq!(source_dir, ".");
+        assert_eq!(log_file, "experiments.tsv");
+        assert_eq!(max_iterations, None);
+        assert!(!no_model);
+    }
+
+    #[test]
+    fn index_then_status_round_trip() {
+        let base = std::env::temp_dir().join("codegenome-cli-roundtrip");
+        let src = base.join("src");
+        let store = base.join("store");
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&src).unwrap();
+        std::fs::write(
+            src.join("lib.rs"),
+            "pub fn entry() { helper(); }\nfn helper() {}\n",
+        )
+        .unwrap();
+
+        commands::index::run(src.to_str().unwrap(), store.to_str().unwrap());
+        assert!(store.exists(), "index must create the store directory");
+        let entries = std::fs::read_dir(&store).unwrap().count();
+        assert!(entries > 0, "store directory must not be empty");
+
+        // Must not panic reading the store it just wrote.
+        commands::status::run(store.to_str().unwrap(), true);
+        let _ = std::fs::remove_dir_all(&base);
+    }
+}

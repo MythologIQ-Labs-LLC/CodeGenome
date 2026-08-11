@@ -17,25 +17,31 @@ fn graph_builder_produces_nodes_and_contains_edges() {
     let source = b"fn alpha() {}\nfn beta() {}\n";
     let symbols = vec![
         make_symbol(
-            "alpha".into(), SymbolKind::Function,
-            sp(1, 0, 13), "function_item".into(),
+            "alpha".into(),
+            SymbolKind::Function,
+            sp(1, 0, 13),
+            "function_item".into(),
         ),
         make_symbol(
-            "beta".into(), SymbolKind::Function,
-            sp(2, 14, 26), "function_item".into(),
+            "beta".into(),
+            SymbolKind::Function,
+            sp(2, 14, 26),
+            "function_item".into(),
         ),
     ];
 
     let (nodes, edges) = build_file_graph(
         std::path::Path::new("test.rs"),
-        source, "rust", &symbols, &[], &[], &[],
+        source,
+        "rust",
+        &symbols,
+        &[],
+        &[],
+        &[],
     );
 
     assert_eq!(nodes.len(), 3);
-    let file_nodes: Vec<_> = nodes
-        .iter()
-        .filter(|n| n.kind == NodeKind::File)
-        .collect();
+    let file_nodes: Vec<_> = nodes.iter().filter(|n| n.kind == NodeKind::File).collect();
     assert_eq!(file_nodes.len(), 1);
 
     let contains: Vec<_> = edges
@@ -50,12 +56,16 @@ fn graph_builder_produces_calls_edge() {
     let source = b"fn caller() { callee(); }\nfn callee() {}";
     let symbols = vec![
         make_symbol(
-            "caller".into(), SymbolKind::Function,
-            sp(1, 0, 25), "function_item".into(),
+            "caller".into(),
+            SymbolKind::Function,
+            sp(1, 0, 25),
+            "function_item".into(),
         ),
         make_symbol(
-            "callee".into(), SymbolKind::Function,
-            sp(2, 26, 40), "function_item".into(),
+            "callee".into(),
+            SymbolKind::Function,
+            sp(2, 26, 40),
+            "function_item".into(),
         ),
     ];
     let calls = vec![CallRef {
@@ -66,7 +76,12 @@ fn graph_builder_produces_calls_edge() {
 
     let (_, edges) = build_file_graph(
         std::path::Path::new("test.rs"),
-        source, "rust", &symbols, &[], &calls, &[],
+        source,
+        "rust",
+        &symbols,
+        &[],
+        &calls,
+        &[],
     );
 
     let call_edges: Vec<_> = edges

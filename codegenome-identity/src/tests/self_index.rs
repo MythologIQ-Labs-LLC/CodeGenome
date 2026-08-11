@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use crate::graph::overlay::Overlay;
-use crate::graph::node::NodeKind;
 use crate::graph::edge::Relation;
+use crate::graph::node::NodeKind;
+use crate::graph::overlay::Overlay;
 use crate::overlay::syntax::parse_rust_files;
 use crate::store::backend::StoreBackend;
 use crate::store::ondisk::OnDiskStore;
@@ -32,8 +32,7 @@ fn collect_rs_files(dir: &std::path::Path) -> Vec<(PathBuf, Vec<u8>)> {
 
 #[test]
 fn self_parse_finds_address_of() {
-    let digest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("src/identity/digest.rs");
+    let digest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/identity/digest.rs");
     let source = std::fs::read(&digest_path).unwrap();
     let files = vec![(digest_path, source)];
     let overlay = parse_rust_files(&files);
@@ -80,10 +79,7 @@ fn every_symbol_has_contains_edge() {
         .collect();
 
     for addr in &symbol_addrs {
-        assert!(
-            contained.contains(addr),
-            "Symbol missing Contains edge"
-        );
+        assert!(contained.contains(addr), "Symbol missing Contains edge");
     }
 }
 
@@ -93,8 +89,8 @@ fn parse_is_deterministic() {
     let a = parse_rust_files(&files);
     let b = parse_rust_files(&files);
 
-    let a_bytes = bincode::serialize(a.nodes()).unwrap();
-    let b_bytes = bincode::serialize(b.nodes()).unwrap();
+    let a_bytes = crate::codec::to_vec(a.nodes()).unwrap();
+    let b_bytes = crate::codec::to_vec(b.nodes()).unwrap();
     assert_eq!(a_bytes, b_bytes, "Parse should be deterministic");
 }
 
@@ -105,10 +101,7 @@ fn symbols_have_spans() {
 
     for node in overlay.nodes() {
         if node.kind == NodeKind::Symbol {
-            assert!(
-                node.span.is_some(),
-                "Symbol nodes must have spans"
-            );
+            assert!(node.span.is_some(), "Symbol nodes must have spans");
         }
     }
 }

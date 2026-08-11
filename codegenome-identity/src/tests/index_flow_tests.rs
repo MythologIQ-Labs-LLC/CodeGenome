@@ -19,10 +19,7 @@ fn if_else_produces_branch_cfg_edges() {
     let tree = parse_tree(code);
     let edges = extract_control_flow(code, &tree);
 
-    let branches: Vec<_> = edges
-        .iter()
-        .filter(|e| e.kind == CfgKind::Branch)
-        .collect();
+    let branches: Vec<_> = edges.iter().filter(|e| e.kind == CfgKind::Branch).collect();
     assert!(
         branches.len() >= 2,
         "Expected at least 2 Branch edges for if/else, got {}",
@@ -52,10 +49,7 @@ fn demo() {
     if y > 0 { let z = 3; }
 }
 "#;
-    let files = vec![(
-        PathBuf::from("test.rs"),
-        code.as_bytes().to_vec(),
-    )];
+    let files = vec![(PathBuf::from("test.rs"), code.as_bytes().to_vec())];
     let result = extract_flow(&files);
 
     let cf: Vec<_> = result

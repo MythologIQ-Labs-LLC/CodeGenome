@@ -15,10 +15,7 @@ pub enum EntrypointKind {
 }
 
 /// Extract entrypoints from top-level function items.
-pub fn extract_entrypoints(
-    source: &[u8],
-    tree: &tree_sitter::Tree,
-) -> Vec<Entrypoint> {
+pub fn extract_entrypoints(source: &[u8], tree: &tree_sitter::Tree) -> Vec<Entrypoint> {
     let mut entries = Vec::new();
     let root = tree.root_node();
     let mut cursor = root.walk();
@@ -31,11 +28,23 @@ pub fn extract_entrypoints(
         let span = node_span(&child);
 
         if name == "main" {
-            entries.push(Entrypoint { name, kind: EntrypointKind::Main, span });
+            entries.push(Entrypoint {
+                name,
+                kind: EntrypointKind::Main,
+                span,
+            });
         } else if has_test_attr(&child, source) {
-            entries.push(Entrypoint { name, kind: EntrypointKind::Test, span });
+            entries.push(Entrypoint {
+                name,
+                kind: EntrypointKind::Test,
+                span,
+            });
         } else if has_pub_visibility(&child) {
-            entries.push(Entrypoint { name, kind: EntrypointKind::PublicApi, span });
+            entries.push(Entrypoint {
+                name,
+                kind: EntrypointKind::PublicApi,
+                span,
+            });
         }
     }
     entries

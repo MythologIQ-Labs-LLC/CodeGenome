@@ -4,9 +4,7 @@ use crate::lang::LanguageSupport;
 
 fn parse(code: &[u8]) -> tree_sitter::Tree {
     let mut parser = tree_sitter::Parser::new();
-    parser
-        .set_language(&PythonLanguage.language())
-        .unwrap();
+    parser.set_language(&PythonLanguage.language()).unwrap();
     parser.parse(code, None).unwrap()
 }
 
@@ -28,10 +26,7 @@ fn py_from_import_produces_import_ref() {
     let tree = parse(code);
     let imports = PythonLanguage.extract_imports(code, &tree);
     assert!(!imports.is_empty(), "Expected at least one ImportRef");
-    let names: Vec<&str> = imports
-        .iter()
-        .map(|i| i.imported_name.as_str())
-        .collect();
+    let names: Vec<&str> = imports.iter().map(|i| i.imported_name.as_str()).collect();
     assert!(names.contains(&"path"), "Expected 'path' import");
 }
 
@@ -69,10 +64,7 @@ fn py_if_else_produces_branch_edges() {
     let code = b"def f(x):\n    if x:\n        a = 1\n    else:\n        b = 2\n";
     let tree = parse(code);
     let edges = PythonLanguage.extract_control_flow(code, &tree);
-    let branches: Vec<_> = edges
-        .iter()
-        .filter(|e| e.kind == CfKind::Branch)
-        .collect();
+    let branches: Vec<_> = edges.iter().filter(|e| e.kind == CfKind::Branch).collect();
     assert!(branches.len() >= 2, "Expected >=2 Branch edges");
 }
 

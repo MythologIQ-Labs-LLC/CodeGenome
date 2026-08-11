@@ -10,17 +10,22 @@ fn addr(name: &str) -> crate::identity::UorAddress {
 fn node(name: &str) -> Node {
     let a = addr(name);
     Node {
-        address: a, kind: NodeKind::Symbol,
+        address: a,
+        kind: NodeKind::Symbol,
         provenance: Provenance::tool("test", Timestamp(0)),
-        confidence: 1.0, created_at: Timestamp(0),
-        content_hash: a, span: None,
+        confidence: 1.0,
+        created_at: Timestamp(0),
+        content_hash: a,
+        span: None,
     }
 }
 
 fn edge(src: &str, tgt: &str, conf: f64, rel: Relation) -> Edge {
     Edge {
-        source: addr(src), target: addr(tgt),
-        relation: rel, confidence: conf,
+        source: addr(src),
+        target: addr(tgt),
+        relation: rel,
+        confidence: conf,
         provenance: Provenance::tool("test", Timestamp(0)),
         evidence: vec![],
     }
@@ -46,9 +51,7 @@ fn bridge_edge_merges_components() {
         edge("B", "C", 1.0, Relation::Imports),
         edge("C", "D", 1.0, Relation::Calls),
     ];
-    let comps = find_components(
-        &nodes, &edges, &[Relation::Calls, Relation::Imports], 0.0,
-    );
+    let comps = find_components(&nodes, &edges, &[Relation::Calls, Relation::Imports], 0.0);
     assert_eq!(comps.len(), 1);
     assert_eq!(comps[0].members.len(), 4);
 }

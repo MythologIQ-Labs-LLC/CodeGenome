@@ -6,14 +6,21 @@ use codegenome_identity::store::ondisk::OnDiskStore;
 impl CodegenomeTools {
     /// Report index status: overlay counts + freshness.
     pub fn status_report(&self, source_dir: &str) -> String {
-        let src = if source_dir.is_empty() { "." } else { source_dir };
+        let src = if source_dir.is_empty() {
+            "."
+        } else {
+            source_dir
+        };
         let store = OnDiskStore::new(&self.store_dir);
         let freshness = meta::check_freshness(&self.store_dir, std::path::Path::new(src));
 
-        let overlays: Vec<_> = store.list_overlays().unwrap_or_default()
+        let overlays: Vec<_> = store
+            .list_overlays()
+            .unwrap_or_default()
             .iter()
             .map(|k| {
-                let (n, e) = store.read_overlay(k)
+                let (n, e) = store
+                    .read_overlay(k)
                     .ok()
                     .flatten()
                     .map(|(nodes, edges)| (nodes.len(), edges.len()))
@@ -29,6 +36,7 @@ impl CodegenomeTools {
             "files_added": freshness.files_added,
             "files_removed": freshness.files_removed,
             "overlays": overlays,
-        }).to_string()
+        })
+        .to_string()
     }
 }

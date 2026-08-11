@@ -6,7 +6,12 @@ use crate::overlay::semantic::SemanticOverlay;
 use crate::overlay::syntax::parse_rust_files;
 use crate::signal::impact::propagate_impact;
 
-fn parse_snippet(code: &str) -> (crate::overlay::syntax::SyntaxOverlay, Vec<(PathBuf, Vec<u8>)>) {
+fn parse_snippet(
+    code: &str,
+) -> (
+    crate::overlay::syntax::SyntaxOverlay,
+    Vec<(PathBuf, Vec<u8>)>,
+) {
     let files = vec![(PathBuf::from("test.rs"), code.as_bytes().to_vec())];
     let syntax = parse_rust_files(&files);
     (syntax, files)
@@ -17,7 +22,10 @@ fn use_declaration_produces_imports_edge() {
     // Two files: lib defines `helper`, main imports it via `use`
     let files = vec![
         (PathBuf::from("lib.rs"), b"pub fn helper() {}".to_vec()),
-        (PathBuf::from("main.rs"), b"use crate::helper;\nfn main() {}".to_vec()),
+        (
+            PathBuf::from("main.rs"),
+            b"use crate::helper;\nfn main() {}".to_vec(),
+        ),
     ];
     let syntax = parse_rust_files(&files);
     let semantic = SemanticOverlay::from_syntax(&syntax, &files);
@@ -29,7 +37,9 @@ fn use_declaration_produces_imports_edge() {
         .collect();
     assert!(!imports.is_empty(), "Expected at least one Imports edge");
     assert!(
-        imports.iter().all(|e| (e.confidence - 0.8).abs() < f64::EPSILON),
+        imports
+            .iter()
+            .all(|e| (e.confidence - 0.8).abs() < f64::EPSILON),
         "Imports edges should have confidence 0.8"
     );
 }
@@ -53,7 +63,9 @@ fn main() {
         .collect();
     assert!(!calls.is_empty(), "Expected at least one Calls edge");
     assert!(
-        calls.iter().all(|e| (e.confidence - 0.7).abs() < f64::EPSILON),
+        calls
+            .iter()
+            .all(|e| (e.confidence - 0.7).abs() < f64::EPSILON),
         "Calls edges should have confidence 0.7"
     );
 }
@@ -81,7 +93,9 @@ impl Bar for Foo {
         .collect();
     assert!(!impls.is_empty(), "Expected at least one Implements edge");
     assert!(
-        impls.iter().all(|e| (e.confidence - 0.8).abs() < f64::EPSILON),
+        impls
+            .iter()
+            .all(|e| (e.confidence - 0.8).abs() < f64::EPSILON),
         "Implements edges should have confidence 0.8"
     );
 }
@@ -160,7 +174,7 @@ fn caller() {
     assert!(impact.contains_key(&callee_addr));
     // With semantic edges, impact should reach more than just the changed node
     assert!(
-        impact.len() >= 1,
+        !impact.is_empty(),
         "Impact should propagate through semantic edges"
     );
 }
@@ -172,7 +186,7 @@ fn collect_rust_files(dir: &std::path::Path) -> Vec<(PathBuf, Vec<u8>)> {
             let path = entry.path();
             if path.is_dir() {
                 files.extend(collect_rust_files(&path));
-            } else if path.extension().map_or(false, |e| e == "rs") {
+            } else if path.extension().is_some_and(|e| e == "rs") {
                 if let Ok(content) = std::fs::read(&path) {
                     files.push((path, content));
                 }

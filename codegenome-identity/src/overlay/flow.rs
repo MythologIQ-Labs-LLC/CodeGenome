@@ -36,8 +36,6 @@ impl FlowOverlay {
 
     /// Backward-compatible wrapper. Delegates to index::flow.
     pub fn from_source(files: &[(PathBuf, Vec<u8>)]) -> Self {
-        Self::from_flow_result(
-            &crate::index::flow::extract_flow(files),
-        )
+        Self::from_flow_result(&crate::index::flow::extract_flow(files))
     }
 }

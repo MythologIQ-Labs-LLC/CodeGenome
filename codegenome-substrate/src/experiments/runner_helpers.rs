@@ -42,7 +42,12 @@ pub fn maybe_consult_advisor(
     let Ok(history) = log::read_log(log_path) else {
         return fallback;
     };
-    let available = &["ImpactAccuracy", "PropagationDepth", "CycleTime", "GraphDensity"];
+    let available = &[
+        "ImpactAccuracy",
+        "PropagationDepth",
+        "CycleTime",
+        "GraphDensity",
+    ];
     advisor::advise(&history, model_id, available)
 }
 

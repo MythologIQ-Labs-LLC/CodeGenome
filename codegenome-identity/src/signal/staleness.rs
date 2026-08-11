@@ -11,11 +11,7 @@ pub fn propagate_staleness(
     stale_roots: &[UorAddress],
     overlays: &[&dyn Overlay],
 ) -> HashMap<UorAddress, f64> {
-    let sorted = topological_sort(
-        stale_roots,
-        overlays,
-        Direction::Upstream,
-    );
+    let sorted = topological_sort(stale_roots, overlays, Direction::Upstream);
 
     let mut staleness: HashMap<UorAddress, f64> = HashMap::new();
     for &addr in stale_roots {
@@ -29,10 +25,7 @@ pub fn propagate_staleness(
         if node_staleness == 0.0 {
             continue;
         }
-        for &(source, confidence) in incoming_index
-            .get(&node)
-            .unwrap_or(&vec![])
-        {
+        for &(source, confidence) in incoming_index.get(&node).unwrap_or(&vec![]) {
             let propagated = node_staleness * confidence;
             let entry = staleness.entry(source).or_insert(0.0);
             if propagated > *entry {
@@ -44,11 +37,8 @@ pub fn propagate_staleness(
     staleness
 }
 
-fn build_incoming_index(
-    overlays: &[&dyn Overlay],
-) -> HashMap<UorAddress, Vec<(UorAddress, f64)>> {
-    let mut index: HashMap<UorAddress, Vec<(UorAddress, f64)>> =
-        HashMap::new();
+fn build_incoming_index(overlays: &[&dyn Overlay]) -> HashMap<UorAddress, Vec<(UorAddress, f64)>> {
+    let mut index: HashMap<UorAddress, Vec<(UorAddress, f64)>> = HashMap::new();
     for overlay in overlays {
         for edge in overlay.edges() {
             index

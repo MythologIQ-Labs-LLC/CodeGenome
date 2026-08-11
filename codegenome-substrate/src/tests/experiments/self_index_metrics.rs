@@ -36,16 +36,25 @@ fn self_index_produces_non_trivial_graph() {
     let total_nodes = overlay.nodes().len();
     let total_edges = overlay.edges().len();
 
-    let file_count = overlay.nodes().iter()
-        .filter(|n| n.kind == NodeKind::File).count();
-    let symbol_count = overlay.nodes().iter()
-        .filter(|n| n.kind == NodeKind::Symbol).count();
+    let file_count = overlay
+        .nodes()
+        .iter()
+        .filter(|n| n.kind == NodeKind::File)
+        .count();
+    let symbol_count = overlay
+        .nodes()
+        .iter()
+        .filter(|n| n.kind == NodeKind::Symbol)
+        .count();
 
     // CODEGENOME is now ~1200+ LOC across 20+ files
     assert!(total_nodes > 50, "Expected >50 nodes, got {total_nodes}");
     assert!(total_edges > 30, "Expected >30 edges, got {total_edges}");
     assert!(file_count > 10, "Expected >10 files, got {file_count}");
-    assert!(symbol_count > 20, "Expected >20 symbols, got {symbol_count}");
+    assert!(
+        symbol_count > 20,
+        "Expected >20 symbols, got {symbol_count}"
+    );
 
     eprintln!("--- Self-Index Metrics ---");
     eprintln!("Total nodes: {total_nodes}");

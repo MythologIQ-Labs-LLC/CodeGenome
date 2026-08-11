@@ -36,8 +36,6 @@ mod tests {
 
     #[test]
     fn empty_multi_path_is_zero() {
-        assert!(
-            (multi_path_confidence(&[]) - 0.0).abs() < f64::EPSILON
-        );
+        assert!((multi_path_confidence(&[]) - 0.0).abs() < f64::EPSILON);
     }
 }

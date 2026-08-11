@@ -1,7 +1,5 @@
 use codegenome_identity::graph::edge::{Edge, Relation};
-use codegenome_identity::graph::node::{
-    Node, NodeKind, Provenance, Source, Timestamp,
-};
+use codegenome_identity::graph::node::{Node, NodeKind, Provenance, Source, Timestamp};
 use codegenome_identity::identity::{address_of, UorAddress};
 
 /// A belief claim about a code artifact. Pure value.
@@ -41,21 +39,27 @@ pub fn create_belief(spec: &BeliefSpec) -> (Node, Vec<Edge>) {
 
     for &ev in &spec.supporting_evidence {
         edges.push(reasoning_edge(
-            address, ev, Relation::Supports, spec.confidence, &prov,
+            address,
+            ev,
+            Relation::Supports,
+            spec.confidence,
+            &prov,
         ));
     }
     for &ev in &spec.contradicting_evidence {
         edges.push(reasoning_edge(
-            address, ev, Relation::Contradicts, spec.confidence, &prov,
+            address,
+            ev,
+            Relation::Contradicts,
+            spec.confidence,
+            &prov,
         ));
     }
 
     (node, edges)
 }
 
-fn about_subject(
-    belief: UorAddress, spec: &BeliefSpec, prov: &Provenance,
-) -> Edge {
+fn about_subject(belief: UorAddress, spec: &BeliefSpec, prov: &Provenance) -> Edge {
     Edge {
         source: belief,
         target: spec.subject,

@@ -1,10 +1,10 @@
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
+use codegenome_identity::graph::overlay::OverlayKind;
 use codegenome_substrate::experiments::config::*;
 use codegenome_substrate::experiments::runner;
-use codegenome_identity::graph::overlay::OverlayKind;
 
 use crate::tools::{CodegenomeTools, RunHandle};
 
@@ -17,13 +17,18 @@ impl CodegenomeTools {
                 return serde_json::json!({
                     "error": "experiment already running",
                     "run_id": run.run_id,
-                }).to_string();
+                })
+                .to_string();
             }
         }
 
-        let run_id = format!("{}", std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default().as_secs());
+        let run_id = format!(
+            "{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs()
+        );
         let log_path = self.store_dir.join(format!("experiment_{run_id}.tsv"));
         let completed = Arc::new(AtomicBool::new(false));
         let completed_clone = Arc::clone(&completed);
@@ -33,7 +38,11 @@ impl CodegenomeTools {
         std::thread::spawn(move || {
             let infra = ExperimentInfra {
                 source_dir: PathBuf::from(&src),
-                overlays: vec![OverlayKind::Syntax, OverlayKind::Semantic, OverlayKind::Flow],
+                overlays: vec![
+                    OverlayKind::Syntax,
+                    OverlayKind::Semantic,
+                    OverlayKind::Flow,
+                ],
                 fitness_fn: FitnessFunction::ImpactAccuracy,
                 model_id: None,
             };
@@ -53,7 +62,8 @@ impl CodegenomeTools {
             "run_id": run_id,
             "status": "started",
             "max_iterations": max_iterations,
-        }).to_string()
+        })
+        .to_string()
     }
 
     /// Poll experiment status.
@@ -72,7 +82,8 @@ impl CodegenomeTools {
             "status": if done { "completed" } else { "running" },
             "iterations": iterations,
             "best_fitness": best,
-        }).to_string()
+        })
+        .to_string()
     }
 
     /// Read last N experiment results.
@@ -95,7 +106,8 @@ fn count_tsv_rows(path: &std::path::Path) -> usize {
 fn best_fitness(path: &std::path::Path) -> f64 {
     std::fs::read_to_string(path)
         .map(|s| {
-            s.lines().skip(1)
+            s.lines()
+                .skip(1)
                 .filter_map(|l| l.split('\t').nth(1)?.parse::<f64>().ok())
                 .fold(0.0_f64, f64::max)
         })
@@ -103,12 +115,20 @@ fn best_fitness(path: &std::path::Path) -> f64 {
 }
 
 fn tail_tsv(path: &std::path::Path, n: usize) -> Vec<serde_json::Value> {
-    let Ok(content) = std::fs::read_to_string(path) else { return vec![] };
+    let Ok(content) = std::fs::read_to_string(path) else {
+        return vec![];
+    };
     let lines: Vec<&str> = content.lines().collect();
-    lines.iter().rev().take(n).rev()
+    lines
+        .iter()
+        .rev()
+        .take(n)
+        .rev()
         .filter_map(|line| {
             let p: Vec<&str> = line.split('\t').collect();
-            if p.len() < 6 { return None; }
+            if p.len() < 6 {
+                return None;
+            }
             Some(serde_json::json!({
                 "iteration": p[0],
                 "fitness": p[1],

@@ -34,8 +34,7 @@ fn fuse_edges(overlays: &[&dyn Overlay]) -> Vec<Edge> {
     let mut groups: HashMap<EdgeKey, Vec<&Edge>> = HashMap::new();
     for overlay in overlays {
         for edge in overlay.edges() {
-            let key =
-                (edge.source, edge.target, edge.relation.clone());
+            let key = (edge.source, edge.target, edge.relation.clone());
             groups.entry(key).or_default().push(edge);
         }
     }
@@ -49,8 +48,7 @@ fn merge_edge_group(edges: &[&Edge]) -> Edge {
     if edges.len() == 1 {
         return edges[0].clone();
     }
-    let confidences: Vec<f64> =
-        edges.iter().map(|e| e.confidence).collect();
+    let confidences: Vec<f64> = edges.iter().map(|e| e.confidence).collect();
     let fused_conf = multi_path_confidence(&confidences);
     let mut evidence: Vec<UorAddress> = Vec::new();
     for edge in edges {

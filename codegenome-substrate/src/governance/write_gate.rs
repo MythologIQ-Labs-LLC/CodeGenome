@@ -30,9 +30,7 @@ impl WriteGatePolicy {
     /// Evaluate a write request against this policy.
     pub fn evaluate(&self, request: &WriteRequest) -> Decision {
         if self.require_provenance && request.actor.is_empty() {
-            return Decision::Deny(
-                "missing provenance: actor must be identified".into(),
-            );
+            return Decision::Deny("missing provenance: actor must be identified".into());
         }
 
         if self.require_freshness && !request.source_freshness.is_fresh {
@@ -47,8 +45,7 @@ impl WriteGatePolicy {
         if request.min_edge_confidence < self.confidence_floor {
             return Decision::Deny(format!(
                 "confidence {:.2} below floor {:.2}",
-                request.min_edge_confidence,
-                self.confidence_floor,
+                request.min_edge_confidence, self.confidence_floor,
             ));
         }
 

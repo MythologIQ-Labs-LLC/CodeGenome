@@ -1,9 +1,7 @@
 use std::path::Path;
 
 use crate::graph::edge::{Edge, Relation};
-use crate::graph::node::{
-    Node, NodeKind, Provenance, Source, Timestamp,
-};
+use crate::graph::node::{Node, NodeKind, Provenance, Source, Timestamp};
 use crate::identity::{address_of, UorAddress};
 use crate::lang::ir::*;
 
@@ -40,7 +38,7 @@ pub fn build_file_graph(
 
     // Symbols → Nodes + Contains edges
     for sym in symbols {
-        let addr = symbol_address(&sym.source_kind, &sym.name);
+        let addr = symbol_address(file_path, &sym.source_kind, &sym.name);
         nodes.push(Node {
             address: addr,
             kind: NodeKind::Symbol,
@@ -48,8 +46,7 @@ pub fn build_file_graph(
             confidence: 1.0,
             created_at: Timestamp(0),
             content_hash: address_of(
-                &source[sym.span.start_byte as usize
-                    ..sym.span.end_byte as usize],
+                &source[sym.span.start_byte as usize..sym.span.end_byte as usize],
             ),
             span: Some(sym.span),
         });
@@ -64,7 +61,7 @@ pub fn build_file_graph(
     }
 
     // Imports → edges
-    let symbol_table = build_local_table(symbols);
+    let symbol_table = build_local_table(file_path, symbols);
     for imp in imports {
         if let Some(&target) = symbol_table.get(&imp.imported_name) {
             edges.push(Edge {
@@ -80,13 +77,10 @@ pub fn build_file_graph(
 
     // Calls → edges
     for call in calls {
-        let Some(&callee) = symbol_table.get(&call.callee_name)
-        else {
+        let Some(&callee) = symbol_table.get(&call.callee_name) else {
             continue;
         };
-        let caller = find_enclosing(
-            &call.caller_span, symbols,
-        );
+        let caller = find_enclosing(file_path, &call.caller_span, symbols);
         let Some(caller_addr) = caller else { continue };
         edges.push(Edge {
             source: caller_addr,
@@ -103,8 +97,7 @@ pub fn build_file_graph(
         let Some(trait_name) = &imp.trait_name else {
             continue;
         };
-        let Some(&type_addr) = symbol_table.get(&imp.type_name)
-        else {
+        let Some(&type_addr) = symbol_table.get(&imp.type_name) else {
             continue;
         };
         let Some(&trait_addr) = symbol_table.get(trait_name) else {
@@ -127,30 +120,41 @@ fn file_address(path: &Path) -> UorAddress {
     address_of(format!("file:{}", path.display()).as_bytes())
 }
 
-fn symbol_address(kind: &str, name: &str) -> UorAddress {
-    address_of(format!("{kind}:{name}").as_bytes())
+/// Symbol identity: file path + syntax kind + name.
+/// File scoping eliminates cross-file name collisions (every `run()` in
+/// the codebase used to hash to the same node). Same-file symbols with
+/// identical kind and name still collide; qualifying by container path
+/// is future work.
+pub fn symbol_address(file_path: &Path, kind: &str, name: &str) -> UorAddress {
+    address_of(format!("sym:{}:{kind}:{name}", file_path.display()).as_bytes())
 }
 
 fn build_local_table(
+    file_path: &Path,
     symbols: &[SymbolDef],
 ) -> std::collections::HashMap<String, UorAddress> {
     symbols
         .iter()
         .map(|s| {
-            (s.name.clone(), symbol_address(&s.source_kind, &s.name))
+            (
+                s.name.clone(),
+                symbol_address(file_path, &s.source_kind, &s.name),
+            )
         })
         .collect()
 }
 
+/// Innermost symbol whose span contains `span` — with methods and nested
+/// items now extracted, the narrowest containing span is the true caller
+/// (the first match would be the outer impl/mod block).
 fn find_enclosing(
+    file_path: &Path,
     span: &crate::graph::node::Span,
     symbols: &[SymbolDef],
 ) -> Option<UorAddress> {
     symbols
         .iter()
-        .find(|s| {
-            s.span.start_line <= span.start_line
-                && s.span.end_line >= span.end_line
-        })
-        .map(|s| symbol_address(&s.source_kind, &s.name))
+        .filter(|s| s.span.start_line <= span.start_line && s.span.end_line >= span.end_line)
+        .min_by_key(|s| s.span.end_line - s.span.start_line)
+        .map(|s| symbol_address(file_path, &s.source_kind, &s.name))
 }

@@ -10,33 +10,23 @@ pub fn git_diff(
     from: Option<&str>,
     to: Option<&str>,
 ) -> Result<OwnedDiff, String> {
-    let repo = git2::Repository::open(repo_path)
-        .map_err(|e| format!("Failed to open repo: {e}"))?;
+    let repo =
+        git2::Repository::open(repo_path).map_err(|e| format!("Failed to open repo: {e}"))?;
 
     let from_tree = resolve_tree(&repo, from.unwrap_or("HEAD"))?;
 
     let diff = if let Some(to_ref) = to {
         let to_tree = resolve_tree(&repo, to_ref)?;
-        repo.diff_tree_to_tree(
-            Some(&from_tree),
-            Some(&to_tree),
-            None,
-        )
+        repo.diff_tree_to_tree(Some(&from_tree), Some(&to_tree), None)
     } else {
-        repo.diff_tree_to_workdir_with_index(
-            Some(&from_tree),
-            None,
-        )
+        repo.diff_tree_to_workdir_with_index(Some(&from_tree), None)
     }
     .map_err(|e| format!("Failed to compute diff: {e}"))?;
 
     convert_diff(&diff)
 }
 
-fn resolve_tree<'a>(
-    repo: &'a git2::Repository,
-    refspec: &str,
-) -> Result<git2::Tree<'a>, String> {
+fn resolve_tree<'a>(repo: &'a git2::Repository, refspec: &str) -> Result<git2::Tree<'a>, String> {
     let obj = repo
         .revparse_single(refspec)
         .map_err(|e| format!("Failed to resolve '{refspec}': {e}"))?;
@@ -48,9 +38,7 @@ fn resolve_tree<'a>(
         .map_err(|e| format!("Failed to get tree: {e}"))
 }
 
-fn convert_diff(
-    diff: &git2::Diff,
-) -> Result<OwnedDiff, String> {
+fn convert_diff(diff: &git2::Diff) -> Result<OwnedDiff, String> {
     let mut files = Vec::new();
 
     for delta_idx in 0..diff.deltas().len() {
@@ -68,7 +56,8 @@ fn convert_diff(
 
         if let Some(ref patch) = patch {
             for hunk_idx in 0..patch.num_hunks() {
-                let (hunk, _) = patch.hunk(hunk_idx)
+                let (hunk, _) = patch
+                    .hunk(hunk_idx)
                     .map_err(|e| format!("Hunk error: {e}"))?;
                 hunks.push(OwnedHunk {
                     new_start: hunk.new_start(),

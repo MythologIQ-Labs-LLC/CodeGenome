@@ -37,10 +37,8 @@ impl PolicyEngine {
         if !path.exists() {
             return Ok(Self { rules: Vec::new() });
         }
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| e.to_string())?;
-        let file: PolicyFile = toml::from_str(&content)
-            .map_err(|e| e.to_string())?;
+        let content = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+        let file: PolicyFile = toml::from_str(&content).map_err(|e| e.to_string())?;
         Ok(Self { rules: file.rules })
     }
 
@@ -54,9 +52,7 @@ impl PolicyEngine {
             }
             return match rule.action.as_str() {
                 "deny" => Decision::Deny(rule.condition.clone()),
-                "require-approval" => {
-                    Decision::RequireApproval(rule.condition.clone())
-                }
+                "require-approval" => Decision::RequireApproval(rule.condition.clone()),
                 _ => Decision::Allow,
             };
         }
@@ -69,10 +65,14 @@ fn condition_matches(condition: &str, ctx: &PolicyContext) -> bool {
         return true;
     }
     let parts: Vec<&str> = condition.split_whitespace().collect();
-    if parts.len() != 3 { return false; }
+    if parts.len() != 3 {
+        return false;
+    }
     let field = parts[0];
     let op = parts[1];
-    let Ok(threshold) = parts[2].parse::<usize>() else { return false };
+    let Ok(threshold) = parts[2].parse::<usize>() else {
+        return false;
+    };
     let value = match field {
         "impact_nodes" => ctx.impact_nodes,
         "changed_files" => ctx.changed_files,

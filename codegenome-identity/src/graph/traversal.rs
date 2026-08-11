@@ -5,13 +5,9 @@ use crate::graph::query_context::QueryContext;
 use crate::identity::UorAddress;
 
 /// Execute a query against a QueryContext. Pure function.
-pub fn execute(
-    query: &Query,
-    ctx: &dyn QueryContext,
-) -> QueryResult {
+pub fn execute(query: &Query, ctx: &dyn QueryContext) -> QueryResult {
     let (reachable, paths) = bfs_paths(query, ctx);
-    let node_set: HashSet<UorAddress> =
-        reachable.iter().copied().collect();
+    let node_set: HashSet<UorAddress> = reachable.iter().copied().collect();
 
     QueryResult {
         nodes: ctx.collect_nodes(&node_set),
@@ -21,13 +17,9 @@ pub fn execute(
     }
 }
 
-fn bfs_paths(
-    query: &Query,
-    ctx: &dyn QueryContext,
-) -> (Vec<UorAddress>, Vec<Vec<UorAddress>>) {
+fn bfs_paths(query: &Query, ctx: &dyn QueryContext) -> (Vec<UorAddress>, Vec<Vec<UorAddress>>) {
     let mut visited = HashSet::new();
-    let mut queue: VecDeque<(UorAddress, Vec<UorAddress>, f64)> =
-        VecDeque::new();
+    let mut queue: VecDeque<(UorAddress, Vec<UorAddress>, f64)> = VecDeque::new();
     let mut reachable = Vec::new();
     let mut paths = Vec::new();
 

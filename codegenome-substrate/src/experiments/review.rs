@@ -23,11 +23,7 @@ pub struct ReviewState {
 }
 
 impl ReviewState {
-    pub fn new(
-        plateau_threshold: u32,
-        restart_threshold: u32,
-        base_scale: f64,
-    ) -> Self {
+    pub fn new(plateau_threshold: u32, restart_threshold: u32, base_scale: f64) -> Self {
         Self {
             plateau_count: 0,
             plateau_threshold,

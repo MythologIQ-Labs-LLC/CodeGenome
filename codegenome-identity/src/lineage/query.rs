@@ -7,9 +7,9 @@ pub fn ancestors(addr: UorAddress, edges: &[Edge]) -> Vec<UorAddress> {
     let mut chain = Vec::new();
     let mut current = addr;
     loop {
-        let parent = edges.iter().find(|e| {
-            e.source == current && e.relation == Relation::MutatedFrom
-        });
+        let parent = edges
+            .iter()
+            .find(|e| e.source == current && e.relation == Relation::MutatedFrom);
         match parent {
             Some(e) => {
                 chain.push(e.target);
@@ -28,9 +28,9 @@ pub fn descendants(addr: UorAddress, edges: &[Edge]) -> Vec<UorAddress> {
     let mut chain = Vec::new();
     let mut current = addr;
     loop {
-        let child = edges.iter().find(|e| {
-            e.target == current && e.relation == Relation::MutatedFrom
-        });
+        let child = edges
+            .iter()
+            .find(|e| e.target == current && e.relation == Relation::MutatedFrom);
         match child {
             Some(e) => {
                 chain.push(e.source);
@@ -43,9 +43,7 @@ pub fn descendants(addr: UorAddress, edges: &[Edge]) -> Vec<UorAddress> {
 }
 
 /// Full lineage chain: ancestors + self + descendants.
-pub fn lineage_chain(
-    addr: UorAddress, edges: &[Edge],
-) -> Vec<UorAddress> {
+pub fn lineage_chain(addr: UorAddress, edges: &[Edge]) -> Vec<UorAddress> {
     let mut chain = ancestors(addr, edges);
     chain.push(addr);
     chain.extend(descendants(addr, edges));

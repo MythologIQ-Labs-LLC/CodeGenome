@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-08-11).** This blueprint was VETOed by audit (see docs/SHADOW_GENOME.md) and never revised; the work later shipped in modified form. Retained as historical record. File paths reference the pre-rename `codegenome-core/` layout, which no longer exists.
+
 # Plan: Index Pipeline Refactor + Graph Traversal Engine
 
 ## Open Questions

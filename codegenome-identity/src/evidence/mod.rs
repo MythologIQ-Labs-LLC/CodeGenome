@@ -27,11 +27,7 @@ pub fn genesis_hash() -> String {
     row_hash("CODEGENOME_EVIDENCE_GENESIS", "")
 }
 
-pub fn log_evidence(
-    path: &Path,
-    entry: &EvidenceEntry,
-    prev_hash: &str,
-) -> Result<String, String> {
+pub fn log_evidence(path: &Path, entry: &EvidenceEntry, prev_hash: &str) -> Result<String, String> {
     let needs_header = !path.exists() || file_is_empty(path);
     let mut file = OpenOptions::new()
         .create(true)
@@ -40,8 +36,11 @@ pub fn log_evidence(
         .map_err(|e| e.to_string())?;
 
     if needs_header {
-        writeln!(file, "timestamp\toperation\tinput_hash\toutput_hash\tchain_hash")
-            .map_err(|e| e.to_string())?;
+        writeln!(
+            file,
+            "timestamp\toperation\tinput_hash\toutput_hash\tchain_hash"
+        )
+        .map_err(|e| e.to_string())?;
     }
 
     let op_str = op_to_str(&entry.operation);
@@ -63,7 +62,9 @@ pub fn read_evidence(path: &Path) -> Result<Vec<EvidenceEntry>, String> {
 
     for (i, line) in reader.lines().enumerate() {
         let line = line.map_err(|e| e.to_string())?;
-        if i == 0 || line.trim().is_empty() { continue; }
+        if i == 0 || line.trim().is_empty() {
+            continue;
+        }
         let (entry, content, hash) = parse_line(&line)?;
         rows.push((content, hash));
         entries.push(entry);
@@ -75,11 +76,16 @@ pub fn read_evidence(path: &Path) -> Result<Vec<EvidenceEntry>, String> {
 fn parse_line(line: &str) -> Result<(EvidenceEntry, String, String), String> {
     let parts: Vec<&str> = line.split('\t').collect();
     if parts.len() < 5 {
-        return Err(format!("Evidence row has {} columns, expected 5", parts.len()));
+        return Err(format!(
+            "Evidence row has {} columns, expected 5",
+            parts.len()
+        ));
     }
     let content = parts[..4].join("\t");
     let entry = EvidenceEntry {
-        timestamp: parts[0].parse().map_err(|e: std::num::ParseIntError| e.to_string())?,
+        timestamp: parts[0]
+            .parse()
+            .map_err(|e: std::num::ParseIntError| e.to_string())?,
         operation: str_to_op(parts[1]),
         input_hash: parts[2].to_string(),
         output_hash: parts[3].to_string(),
@@ -126,5 +132,7 @@ fn str_to_op(s: &str) -> Operation {
 }
 
 fn file_is_empty(path: &Path) -> bool {
-    std::fs::metadata(path).map(|m| m.len() == 0).unwrap_or(true)
+    std::fs::metadata(path)
+        .map(|m| m.len() == 0)
+        .unwrap_or(true)
 }

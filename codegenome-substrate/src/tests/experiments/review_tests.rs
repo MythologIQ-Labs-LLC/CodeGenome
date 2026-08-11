@@ -1,4 +1,4 @@
-use crate::experiments::review::{Action, ReviewState, random_params};
+use crate::experiments::review::{random_params, Action, ReviewState};
 
 #[test]
 fn improving_fitness_returns_continue() {
@@ -13,7 +13,7 @@ fn improving_fitness_returns_continue() {
 fn plateau_triggers_widen_search() {
     let mut reviewer = ReviewState::new(5, 3, 0.1);
     reviewer.assess(0.5); // baseline
-    // 5 non-improving iterations — 5th triggers widen
+                          // 5 non-improving iterations — 5th triggers widen
     let mut last = Action::Continue;
     for _ in 0..5 {
         last = reviewer.assess(0.3);
@@ -49,7 +49,7 @@ fn repeated_plateaus_trigger_restart() {
 fn improvement_after_plateau_resets_counts() {
     let mut reviewer = ReviewState::new(5, 3, 0.1);
     reviewer.assess(0.5); // baseline
-    // Partial plateau (4 of 5 needed)
+                          // Partial plateau (4 of 5 needed)
     for _ in 0..4 {
         reviewer.assess(0.3);
     }

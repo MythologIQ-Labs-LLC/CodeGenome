@@ -15,9 +15,7 @@ pub struct FlowResult {
 }
 
 /// Extract control flow and data flow from source files.
-pub fn extract_flow(
-    files: &[(PathBuf, Vec<u8>)],
-) -> FlowResult {
+pub fn extract_flow(files: &[(PathBuf, Vec<u8>)]) -> FlowResult {
     let prov = Provenance {
         source: Source::ToolOutput,
         actor: "flow-extractor".into(),
@@ -36,10 +34,8 @@ pub fn extract_flow(
         let dfg = flow_dfg::extract_data_flow(source, &tree);
 
         for cf in &cfg {
-            let (src, tgt) = stmt_node_pair(
-                path, &cf.source_span, &cf.target_span,
-                &prov, &mut nodes,
-            );
+            let (src, tgt) =
+                stmt_node_pair(path, &cf.source_span, &cf.target_span, &prov, &mut nodes);
             edges.push(Edge {
                 source: src,
                 target: tgt,
@@ -50,10 +46,7 @@ pub fn extract_flow(
             });
         }
         for df in &dfg {
-            let (src, tgt) = stmt_node_pair(
-                path, &df.def_span, &df.use_span,
-                &prov, &mut nodes,
-            );
+            let (src, tgt) = stmt_node_pair(path, &df.def_span, &df.use_span, &prov, &mut nodes);
             edges.push(Edge {
                 source: src,
                 target: tgt,
@@ -82,12 +75,7 @@ fn stmt_node_pair(
     (src_addr, tgt_addr)
 }
 
-fn ensure_node(
-    addr: UorAddress,
-    span: &Span,
-    prov: &Provenance,
-    nodes: &mut Vec<Node>,
-) {
+fn ensure_node(addr: UorAddress, span: &Span, prov: &Provenance, nodes: &mut Vec<Node>) {
     if !nodes.iter().any(|n| n.address == addr) {
         nodes.push(Node {
             address: addr,
@@ -124,10 +112,8 @@ pub fn extract_flow_multi(
     file_groups: &HashMap<&str, Vec<(PathBuf, Vec<u8>)>>,
     languages: &[Box<dyn LanguageSupport>],
 ) -> FlowResult {
-    let lang_map: HashMap<&str, &dyn LanguageSupport> = languages
-        .iter()
-        .map(|l| (l.name(), l.as_ref()))
-        .collect();
+    let lang_map: HashMap<&str, &dyn LanguageSupport> =
+        languages.iter().map(|l| (l.name(), l.as_ref())).collect();
 
     let prov = Provenance {
         source: Source::ToolOutput,
@@ -155,10 +141,8 @@ pub fn extract_flow_multi(
             let dfg = backend.extract_data_flow(source, &tree);
 
             for cf in &cfg {
-                let (src, tgt) = stmt_node_pair(
-                    path, &cf.source_span, &cf.target_span,
-                    &prov, &mut nodes,
-                );
+                let (src, tgt) =
+                    stmt_node_pair(path, &cf.source_span, &cf.target_span, &prov, &mut nodes);
                 edges.push(Edge {
                     source: src,
                     target: tgt,
@@ -169,10 +153,8 @@ pub fn extract_flow_multi(
                 });
             }
             for df in &dfg {
-                let (src, tgt) = stmt_node_pair(
-                    path, &df.def_span, &df.use_span,
-                    &prov, &mut nodes,
-                );
+                let (src, tgt) =
+                    stmt_node_pair(path, &df.def_span, &df.use_span, &prov, &mut nodes);
                 edges.push(Edge {
                     source: src,
                     target: tgt,

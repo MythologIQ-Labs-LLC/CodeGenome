@@ -2,16 +2,30 @@ use schemars::schema_for;
 
 use crate::tools::inputs::*;
 
+/// schemars 1.x exposes schemas as JSON values; assert on the
+/// serialized form, which is also exactly what MCP clients see.
+fn required_fields(schema: &schemars::Schema) -> Vec<String> {
+    let value = serde_json::to_value(schema).unwrap();
+    value["required"]
+        .as_array()
+        .map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 #[test]
 fn context_input_schema_valid() {
     let schema = schema_for!(ContextInput);
-    let obj = schema.schema.object.as_ref().unwrap();
+    let required = required_fields(&schema);
     assert!(
-        obj.required.contains(&"file".to_string()),
+        required.contains(&"file".to_string()),
         "file should be required"
     );
     assert!(
-        obj.required.contains(&"line".to_string()),
+        required.contains(&"line".to_string()),
         "line should be required"
     );
 }
@@ -19,23 +33,21 @@ fn context_input_schema_valid() {
 #[test]
 fn impact_input_schema_valid() {
     let schema = schema_for!(ImpactInput);
-    let obj = schema.schema.object.as_ref().unwrap();
-    assert!(obj.required.contains(&"file".to_string()));
-    assert!(obj.required.contains(&"line".to_string()));
+    let required = required_fields(&schema);
+    assert!(required.contains(&"file".to_string()));
+    assert!(required.contains(&"line".to_string()));
 }
 
 #[test]
 fn detect_input_defaults_from_ref() {
-    let input: DetectInput =
-        serde_json::from_str("{}").unwrap();
+    let input: DetectInput = serde_json::from_str("{}").unwrap();
     assert_eq!(input.from_ref, "HEAD");
     assert!(input.to_ref.is_none());
 }
 
 #[test]
 fn reindex_input_defaults_actor() {
-    let input: ReindexInput =
-        serde_json::from_str("{}").unwrap();
+    let input: ReindexInput = serde_json::from_str("{}").unwrap();
     assert_eq!(input.actor, "claude-code");
 }
 

@@ -40,9 +40,7 @@ fn neighbors_returns_correct_targets() {
     let edges = vec![edge("A", "B", 0.9), edge("A", "C", 0.7)];
     let ctx = LocalQueryContext::new(&nodes, &edges);
 
-    let nbrs = ctx.neighbors(
-        addr("A"), &Direction::Downstream, &None, 0.0,
-    );
+    let nbrs = ctx.neighbors(addr("A"), &Direction::Downstream, &None, 0.0);
     assert_eq!(nbrs.len(), 2);
     let targets: Vec<_> = nbrs.iter().map(|(a, _, _)| *a).collect();
     assert!(targets.contains(&addr("B")));
@@ -55,9 +53,7 @@ fn neighbors_filters_by_confidence() {
     let edges = vec![edge("A", "B", 0.9), edge("A", "C", 0.5)];
     let ctx = LocalQueryContext::new(&nodes, &edges);
 
-    let nbrs = ctx.neighbors(
-        addr("A"), &Direction::Downstream, &None, 0.8,
-    );
+    let nbrs = ctx.neighbors(addr("A"), &Direction::Downstream, &None, 0.8);
     assert_eq!(nbrs.len(), 1);
     assert_eq!(nbrs[0].0, addr("B"));
 }

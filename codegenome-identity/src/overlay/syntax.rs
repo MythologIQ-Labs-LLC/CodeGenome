@@ -49,8 +49,6 @@ impl Overlay for SyntaxOverlay {
 }
 
 /// Backward-compatible wrapper. Delegates to index::parser.
-pub fn parse_rust_files(
-    files: &[(PathBuf, Vec<u8>)],
-) -> SyntaxOverlay {
+pub fn parse_rust_files(files: &[(PathBuf, Vec<u8>)]) -> SyntaxOverlay {
     SyntaxOverlay::from_parsed(&crate::index::parser::parse_files(files))
 }

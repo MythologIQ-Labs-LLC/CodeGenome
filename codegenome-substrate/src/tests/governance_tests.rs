@@ -82,39 +82,57 @@ fn default_policy_allows_all() {
 #[test]
 fn deny_rule_blocks_operation() {
     let path = temp_path("deny").with_extension("toml");
-    std::fs::write(&path, r#"
+    std::fs::write(
+        &path,
+        r#"
 [[rules]]
 operation = "index"
 condition = "always"
 action = "deny"
-"#).unwrap();
+"#,
+    )
+    .unwrap();
     let engine = PolicyEngine::load(&path).unwrap();
-    assert!(matches!(engine.evaluate(&ctx("index", 0, 0)), Decision::Deny(_)));
+    assert!(matches!(
+        engine.evaluate(&ctx("index", 0, 0)),
+        Decision::Deny(_)
+    ));
 }
 
 #[test]
 fn require_approval_on_high_impact() {
     let path = temp_path("approval").with_extension("toml");
-    std::fs::write(&path, r#"
+    std::fs::write(
+        &path,
+        r#"
 [[rules]]
 operation = "query"
 condition = "impact_nodes > 10"
 action = "require-approval"
-"#).unwrap();
+"#,
+    )
+    .unwrap();
     let engine = PolicyEngine::load(&path).unwrap();
-    assert!(matches!(engine.evaluate(&ctx("query", 15, 0)), Decision::RequireApproval(_)));
+    assert!(matches!(
+        engine.evaluate(&ctx("query", 15, 0)),
+        Decision::RequireApproval(_)
+    ));
     assert_eq!(engine.evaluate(&ctx("query", 5, 0)), Decision::Allow);
 }
 
 #[test]
 fn condition_always_matches() {
     let path = temp_path("always").with_extension("toml");
-    std::fs::write(&path, r#"
+    std::fs::write(
+        &path,
+        r#"
 [[rules]]
 operation = "index"
 condition = "always"
 action = "allow"
-"#).unwrap();
+"#,
+    )
+    .unwrap();
     let engine = PolicyEngine::load(&path).unwrap();
     assert_eq!(engine.evaluate(&ctx("index", 0, 0)), Decision::Allow);
 }
@@ -122,12 +140,16 @@ action = "allow"
 #[test]
 fn unmatched_operation_allows() {
     let path = temp_path("unmatched").with_extension("toml");
-    std::fs::write(&path, r#"
+    std::fs::write(
+        &path,
+        r#"
 [[rules]]
 operation = "index"
 condition = "always"
 action = "deny"
-"#).unwrap();
+"#,
+    )
+    .unwrap();
     let engine = PolicyEngine::load(&path).unwrap();
     assert_eq!(engine.evaluate(&ctx("query", 0, 0)), Decision::Allow);
 }

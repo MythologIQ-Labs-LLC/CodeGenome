@@ -54,11 +54,7 @@ fn beliefs_survive_fused_overlay_rewrite() {
 
     // Rewrite the fused overlay (simulating reindex)
     store
-        .write_overlay(
-            &OverlayKind::Custom("fused".into()),
-            &[],
-            &[],
-        )
+        .write_overlay(&OverlayKind::Custom("fused".into()), &[], &[])
         .unwrap();
 
     // Beliefs still loadable

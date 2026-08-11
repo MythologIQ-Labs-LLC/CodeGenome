@@ -19,17 +19,13 @@ impl CodegenomeTools {
             input.to_ref.as_deref(),
         ) {
             Ok(d) => d,
-            Err(e) => {
-                return serde_json::json!({"error": e}).to_string()
-            }
+            Err(e) => return serde_json::json!({"error": e}).to_string(),
         };
 
         let overlays: Vec<&dyn Overlay> = vec![&overlay];
         let changeset = detect_changes(&diff, &overlays);
 
-        let blast_radius = blast_radius_json(
-            &changeset.impact, &overlay,
-        );
+        let blast_radius = blast_radius_json(&changeset.impact, &overlay);
 
         let mut resp = serde_json::json!({
             "from_ref": input.from_ref,
@@ -46,18 +42,11 @@ impl CodegenomeTools {
 }
 
 fn blast_radius_json(
-    impact: &std::collections::HashMap<
-        codegenome_identity::identity::UorAddress, f64,
-    >,
+    impact: &std::collections::HashMap<codegenome_identity::identity::UorAddress, f64>,
     overlay: &crate::tools::StoredOverlay,
 ) -> Vec<serde_json::Value> {
-    let mut items: Vec<_> = impact
-        .iter()
-        .filter(|(_, &score)| score > 0.01)
-        .collect();
-    items.sort_by(|a, b| {
-        b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal)
-    });
+    let mut items: Vec<_> = impact.iter().filter(|(_, &score)| score > 0.01).collect();
+    items.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal));
 
     items
         .iter()

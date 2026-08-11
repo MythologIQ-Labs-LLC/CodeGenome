@@ -16,9 +16,7 @@ pub struct Node {
 }
 
 /// Byte range in source. Bridges tree-sitter positions to graph nodes.
-#[derive(
-    Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Span {
     pub start_byte: u32,
     pub end_byte: u32,
@@ -26,9 +24,7 @@ pub struct Span {
     pub end_line: u32,
 }
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum NodeKind {
     File,
     Symbol,
@@ -46,9 +42,7 @@ pub struct Provenance {
     pub justification: Option<UorAddress>,
 }
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Source {
     UserStated,
     Inferred,
@@ -57,10 +51,7 @@ pub enum Source {
 }
 
 /// Milliseconds since Unix epoch. Value type.
-#[derive(
-    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord,
-    Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Timestamp(pub u64);
 
 impl Provenance {

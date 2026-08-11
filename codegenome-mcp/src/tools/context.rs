@@ -12,8 +12,7 @@ impl CodegenomeTools {
         let Some((overlay, index)) = self.load_with_index() else {
             return r#"{"error":"no index found"}"#.into();
         };
-        let Some(addr) = index.resolve(&input.file, input.line)
-        else {
+        let Some(addr) = index.resolve(&input.file, input.line) else {
             return format!(
                 r#"{{"error":"no symbol at {}:{}"}}"#,
                 input.file, input.line
@@ -28,10 +27,7 @@ impl CodegenomeTools {
             min_confidence: 0.0,
             relation_filter: None,
         };
-        let ctx = LocalQueryContext::new(
-            overlay.nodes(),
-            overlay.edges(),
-        );
+        let ctx = LocalQueryContext::new(overlay.nodes(), overlay.edges());
         let result = traversal::execute(&query, &ctx);
 
         let nodes: Vec<_> = result

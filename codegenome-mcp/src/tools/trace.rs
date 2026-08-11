@@ -16,22 +16,15 @@ impl CodegenomeTools {
         };
 
         // Try resolving as file:line first, fall back to process node scan
-        let target_addr = if let Some(addr) =
-            try_resolve_entrypoint(&input.entrypoint, &index)
-        {
+        let target_addr = if let Some(addr) = try_resolve_entrypoint(&input.entrypoint, &index) {
             addr
         } else {
             // Fall back to process node matching
-            let proc_node = overlay.nodes.iter().find(|n| {
-                n.kind == NodeKind::Process
-            });
+            let proc_node = overlay.nodes.iter().find(|n| n.kind == NodeKind::Process);
             match proc_node {
                 Some(p) => p.address,
                 None => {
-                    return format!(
-                        r#"{{"error":"no process for '{}'"}}"#,
-                        input.entrypoint
-                    );
+                    return format!(r#"{{"error":"no process for '{}'"}}"#, input.entrypoint);
                 }
             }
         };
@@ -41,15 +34,9 @@ impl CodegenomeTools {
             direction: Direction::Downstream,
             max_depth: input.max_depth,
             min_confidence: 0.0,
-            relation_filter: Some(vec![
-                Relation::Calls,
-                Relation::PartOfProcess,
-            ]),
+            relation_filter: Some(vec![Relation::Calls, Relation::PartOfProcess]),
         };
-        let ctx = LocalQueryContext::new(
-            overlay.nodes(),
-            overlay.edges(),
-        );
+        let ctx = LocalQueryContext::new(overlay.nodes(), overlay.edges());
         let result = traversal::execute(&query, &ctx);
 
         let chain: Vec<_> = result
@@ -59,9 +46,7 @@ impl CodegenomeTools {
                 let loc = n
                     .span
                     .as_ref()
-                    .map(|s| {
-                        format!("line {}:{}", s.start_line, s.end_line)
-                    })
+                    .map(|s| format!("line {}:{}", s.start_line, s.end_line))
                     .unwrap_or_else(|| format!("{:?}", n.address));
                 serde_json::json!({
                     "node": loc,

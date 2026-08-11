@@ -12,11 +12,7 @@ pub fn propagate_impact(
     changed: &[UorAddress],
     overlays: &[&dyn Overlay],
 ) -> HashMap<UorAddress, f64> {
-    let sorted = topological_sort(
-        changed,
-        overlays,
-        Direction::Downstream,
-    );
+    let sorted = topological_sort(changed, overlays, Direction::Downstream);
 
     let mut impact: HashMap<UorAddress, f64> = HashMap::new();
     for &addr in changed {
@@ -30,10 +26,7 @@ pub fn propagate_impact(
         if node_impact == 0.0 {
             continue;
         }
-        for &(target, confidence) in edge_index
-            .get(&node)
-            .unwrap_or(&vec![])
-        {
+        for &(target, confidence) in edge_index.get(&node).unwrap_or(&vec![]) {
             let propagated = node_impact * confidence;
             let entry = impact.entry(target).or_insert(0.0);
             if propagated > *entry {
@@ -45,11 +38,8 @@ pub fn propagate_impact(
     impact
 }
 
-fn build_outgoing_index(
-    overlays: &[&dyn Overlay],
-) -> HashMap<UorAddress, Vec<(UorAddress, f64)>> {
-    let mut index: HashMap<UorAddress, Vec<(UorAddress, f64)>> =
-        HashMap::new();
+fn build_outgoing_index(overlays: &[&dyn Overlay]) -> HashMap<UorAddress, Vec<(UorAddress, f64)>> {
+    let mut index: HashMap<UorAddress, Vec<(UorAddress, f64)>> = HashMap::new();
     for overlay in overlays {
         for edge in overlay.edges() {
             index

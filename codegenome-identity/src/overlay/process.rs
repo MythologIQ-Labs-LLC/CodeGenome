@@ -16,10 +16,18 @@ pub struct ProcessOverlay {
 }
 
 impl Overlay for ProcessOverlay {
-    fn kind(&self) -> OverlayKind { OverlayKind::Custom("process".into()) }
-    fn nodes(&self) -> &[Node] { &self.nodes }
-    fn edges(&self) -> &[Edge] { &self.edges }
-    fn ground_truth(&self) -> GroundTruthLevel { GroundTruthLevel::Constructible }
+    fn kind(&self) -> OverlayKind {
+        OverlayKind::Custom("process".into())
+    }
+    fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+    fn edges(&self) -> &[Edge] {
+        &self.edges
+    }
+    fn ground_truth(&self) -> GroundTruthLevel {
+        GroundTruthLevel::Constructible
+    }
 }
 
 impl ProcessOverlay {
@@ -40,7 +48,9 @@ impl ProcessOverlay {
         let mut edges = Vec::new();
 
         for (_, source) in files {
-            let Some(tree) = parse_file(source) else { continue };
+            let Some(tree) = parse_file(source) else {
+                continue;
+            };
             for ep in extract_entrypoints(source, &tree) {
                 let proc_addr = address_of(format!("process:{}", ep.name).as_bytes());
                 nodes.push(Node {
@@ -53,8 +63,12 @@ impl ProcessOverlay {
                     span: Some(ep.span),
                 });
                 trace_calls(
-                    proc_addr, &ep.name, &name_index,
-                    &call_graph, &prov, &mut edges,
+                    proc_addr,
+                    &ep.name,
+                    &name_index,
+                    &call_graph,
+                    &prov,
+                    &mut edges,
                 );
             }
         }
@@ -71,14 +85,18 @@ fn trace_calls(
     prov: &Provenance,
     edges: &mut Vec<Edge>,
 ) {
-    let Some(&start) = names.get(entry_name) else { return };
+    let Some(&start) = names.get(entry_name) else {
+        return;
+    };
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
     queue.push_back((start, 0u32));
     visited.insert(start);
 
     while let Some((addr, depth)) = queue.pop_front() {
-        if depth > 10 { continue; }
+        if depth > 10 {
+            continue;
+        }
         let conf = 0.9_f64.powi(depth as i32);
         edges.push(Edge {
             source: proc_addr,
@@ -100,20 +118,18 @@ fn build_name_index(
     syntax: &SyntaxOverlay,
     files: &[(PathBuf, Vec<u8>)],
 ) -> HashMap<String, UorAddress> {
+    use crate::lang::LanguageSupport;
+    let backend = crate::lang::rust::RustLanguage;
     let mut index = HashMap::new();
-    for (_, source) in files {
-        let Some(tree) = parse_file(source) else { continue };
-        let root = tree.root_node();
-        let mut cursor = root.walk();
-        for child in root.children(&mut cursor) {
-            if let Some(name) = child.child_by_field_name("name")
-                .and_then(|n| n.utf8_text(source).ok())
-            {
-                let content = format!("{}:{}", child.kind(), name);
-                let addr = address_of(content.as_bytes());
-                if syntax.nodes().iter().any(|n| n.address == addr) {
-                    index.insert(name.to_string(), addr);
-                }
+    for (path, source) in files {
+        let Some(tree) = parse_file(source) else {
+            continue;
+        };
+        for sym in backend.extract_symbols(source, &tree) {
+            let addr =
+                crate::lang::graph_builder::symbol_address(path, &sym.source_kind, &sym.name);
+            if syntax.nodes().iter().any(|n| n.address == addr) {
+                index.insert(sym.name.clone(), addr);
             }
         }
     }
@@ -124,7 +140,10 @@ fn build_call_graph(semantic: &SemanticOverlay) -> HashMap<UorAddress, Vec<UorAd
     let mut graph = HashMap::new();
     for edge in semantic.edges() {
         if edge.relation == Relation::Calls {
-            graph.entry(edge.source).or_insert_with(Vec::new).push(edge.target);
+            graph
+                .entry(edge.source)
+                .or_insert_with(Vec::new)
+                .push(edge.target);
         }
     }
     graph
@@ -132,6 +151,8 @@ fn build_call_graph(semantic: &SemanticOverlay) -> HashMap<UorAddress, Vec<UorAd
 
 fn parse_file(source: &[u8]) -> Option<tree_sitter::Tree> {
     let mut parser = tree_sitter::Parser::new();
-    parser.set_language(&tree_sitter_rust::LANGUAGE.into()).ok()?;
+    parser
+        .set_language(&tree_sitter_rust::LANGUAGE.into())
+        .ok()?;
     parser.parse(source, None)
 }

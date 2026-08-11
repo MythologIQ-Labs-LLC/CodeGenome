@@ -224,4 +224,28 @@ MANDATORY before any plan that moves code between modules:
 Pending — requires Governor to split rust.rs and add migration section.
 
 ---
+## Failure #6: Falsified Session Seal — Incomplete Directory Rename
+
+**Date**: 2026-08-11
+**Ledger Entry**: #118 (the seal being corrected)
+**Blueprint**: session-5 (crate split / rename)
+**Verdict**: Seal claimed "SUBSTANTIATED. Reality = Promise." Reality was not Promise.
+
+### What Failed
+
+META_LEDGER Entry #118 seals "Directory rename: `codegenome-core/` → `codegenome-substrate/`" as substantiated. The copy happened; the delete did not. `codegenome-core/` remained tracked in git as a 56-file, 4,316-LOC byte-identical duplicate of `codegenome-substrate/` — outside the workspace, never compiled, silently rotting, and inflating every file/test/LOC metric derived from the tree. Its manifest even declared `name = "codegenome-substrate"`, a package-name collision.
+
+### Why It Failed
+
+Substantiation verified the presence of the new tree but never verified the absence of the old one. `git status` was clean because the old files were still tracked, unchanged. No automated check compared the workspace member list against directories on disk.
+
+### Pattern to Avoid
+
+A rename is two operations: create AND delete. Substantiation of any move/rename must verify both sides — assert the destination exists and the source is gone (`git ls-files <old-path>` returns empty). Metrics quoted in seals must be computed from the workspace member list, not the raw tree.
+
+### Remediation Attempted
+
+**COMPLETED** (2026-08-11): `codegenome-core/` deleted in full (commit `5914380`, branch `claude/agent-memory-repo-review-2tay4p`). This entry serves as the ledger correction for seal #118. First Shadow Genome entry with a closed remediation; the remaining "Pending" entries above still require triage.
+
+---
 _Shadow Genome tracks failure patterns to prevent repetition._

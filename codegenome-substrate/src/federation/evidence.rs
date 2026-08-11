@@ -7,11 +7,7 @@ pub fn dependency_edges(cfg: &WorkspaceConfig) -> Vec<(String, String, String)> 
     let by_pkg: HashMap<_, _> = cfg
         .repositories
         .iter()
-        .filter_map(|repo| {
-            package_and_deps(&repo.source_dir)
-                .ok()
-                .map(|(pkg, deps)| (pkg, deps))
-        })
+        .filter_map(|repo| package_and_deps(&repo.source_dir).ok())
         .collect();
     cfg.repositories
         .iter()
@@ -52,10 +48,7 @@ pub fn dependency_pairs(cfg: &WorkspaceConfig) -> Vec<(String, String)> {
     let by_pkg: HashMap<String, Vec<String>> = cfg
         .repositories
         .iter()
-        .filter_map(|repo| {
-            package_and_deps(&repo.source_dir)
-                .ok()
-        })
+        .filter_map(|repo| package_and_deps(&repo.source_dir).ok())
         .collect();
     cfg.repositories
         .iter()
@@ -77,20 +70,25 @@ pub fn symbol_edges(cfg: &WorkspaceConfig) -> Vec<codegenome_identity::graph::ed
     let mut edges = Vec::new();
 
     for (importer_name, exporter_name) in &pairs {
-        let Some(importer) = cfg.repositories.iter()
-            .find(|r| &r.name == importer_name) else { continue };
-        let Some(exporter) = cfg.repositories.iter()
-            .find(|r| &r.name == exporter_name) else { continue };
+        let Some(importer) = cfg.repositories.iter().find(|r| &r.name == importer_name) else {
+            continue;
+        };
+        let Some(exporter) = cfg.repositories.iter().find(|r| &r.name == exporter_name) else {
+            continue;
+        };
 
         let importer_files = collect_files(&importer.source_dir);
         let exporter_files = collect_files(&exporter.source_dir);
 
         for lang in &languages {
             let exports = crate::federation::symbol_resolve::build_export_table(
-                lang.as_ref(), &exporter_files,
+                lang.as_ref(),
+                &exporter_files,
             );
             let resolved = crate::federation::symbol_resolve::resolve_cross_repo(
-                lang.as_ref(), &importer_files, &exports,
+                lang.as_ref(),
+                &importer_files,
+                &exports,
             );
             edges.extend(resolved);
         }
@@ -101,12 +99,15 @@ pub fn symbol_edges(cfg: &WorkspaceConfig) -> Vec<codegenome_identity::graph::ed
 fn collect_files(dir: &Path) -> Vec<(std::path::PathBuf, Vec<u8>)> {
     let supported = codegenome_identity::lang::detect::supported_extensions();
     let mut files = Vec::new();
-    let Ok(entries) = std::fs::read_dir(dir) else { return files };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return files;
+    };
     for entry in entries.flatten() {
         let path = entry.path();
         if path.is_dir() {
             files.extend(collect_files(&path));
-        } else if path.extension()
+        } else if path
+            .extension()
             .and_then(|e| e.to_str())
             .is_some_and(|e| supported.contains(&e))
         {

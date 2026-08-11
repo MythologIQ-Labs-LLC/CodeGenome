@@ -14,10 +14,7 @@ pub fn run(source_dir: &str, store_dir: &str) {
             Ok(r) => {
                 eprintln!(
                     "Indexed: {} files, {} nodes, {} edges ({}ms)",
-                    r.file_count,
-                    r.node_count,
-                    r.edge_count,
-                    r.elapsed_ms,
+                    r.file_count, r.node_count, r.edge_count, r.elapsed_ms,
                 );
             }
             Err(e) => {
@@ -43,8 +40,7 @@ pub fn run(source_dir: &str, store_dir: &str) {
             }
         }
     });
-    let json = serde_json::to_string_pretty(&mcp_content)
-        .expect("Failed to serialize .mcp.json");
+    let json = serde_json::to_string_pretty(&mcp_content).expect("Failed to serialize .mcp.json");
 
     if let Err(e) = std::fs::write(mcp_path, json) {
         eprintln!("Failed to write .mcp.json: {e}");

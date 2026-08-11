@@ -39,10 +39,7 @@ impl RuntimeOverlay {
         trace_path: &Path,
         source_files: &[(PathBuf, Vec<u8>)],
     ) -> Result<Self, String> {
-        let result = crate::index::dynamic::ingest_trace(
-            trace_path,
-            source_files,
-        )?;
+        let result = crate::index::dynamic::ingest_trace(trace_path, source_files)?;
         Ok(Self::from_trace(&result))
     }
 }

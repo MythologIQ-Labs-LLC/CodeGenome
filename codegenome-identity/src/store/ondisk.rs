@@ -89,11 +89,11 @@ fn dir_name_to_kind(name: &str) -> OverlayKind {
 }
 
 fn write_bincode<T: serde::Serialize + ?Sized>(path: &Path, data: &T) -> Result<(), String> {
-    let bytes = bincode::serialize(data).map_err(|e| e.to_string())?;
+    let bytes = crate::codec::to_vec(data).map_err(|e| e.to_string())?;
     fs::write(path, bytes).map_err(|e| e.to_string())
 }
 
 fn read_bincode<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T, String> {
     let bytes = fs::read(path).map_err(|e| e.to_string())?;
-    bincode::deserialize(&bytes).map_err(|e| e.to_string())
+    crate::codec::from_slice(&bytes).map_err(|e| e.to_string())
 }

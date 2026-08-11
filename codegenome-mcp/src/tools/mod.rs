@@ -50,16 +50,11 @@ pub struct RunHandle {
 }
 
 impl CodegenomeTools {
-    pub fn new(
-        source_dir: impl Into<PathBuf>,
-        store_dir: impl Into<PathBuf>,
-    ) -> Self {
+    pub fn new(source_dir: impl Into<PathBuf>, store_dir: impl Into<PathBuf>) -> Self {
         Self {
             source_dir: source_dir.into(),
             store_dir: store_dir.into(),
-            run_manager: Arc::new(Mutex::new(RunManager {
-                active_run: None,
-            })),
+            run_manager: Arc::new(Mutex::new(RunManager { active_run: None })),
         }
     }
 
@@ -79,42 +74,36 @@ impl CodegenomeTools {
     }
 
     /// Load fused overlay and build a FileIndex for resolution.
-    pub fn load_with_index(
-        &self,
-    ) -> Option<(StoredOverlay, FileIndex)> {
+    pub fn load_with_index(&self) -> Option<(StoredOverlay, FileIndex)> {
         let overlay = self.load_overlay()?;
-        let index = FileIndex::build(
-            &self.source_dir,
-            overlay.nodes(),
-            overlay.edges(),
-        );
+        let index = FileIndex::build(&self.source_dir, overlay.nodes(), overlay.edges());
         Some((overlay, index))
     }
 
-    pub fn load_federated_overlay(
-        &self,
-        store_dir: Option<&str>,
-    ) -> Option<StoredOverlay> {
+    pub fn load_federated_overlay(&self, store_dir: Option<&str>) -> Option<StoredOverlay> {
         let root = store_dir
             .filter(|s| !s.is_empty())
             .map(PathBuf::from)
             .unwrap_or_else(|| self.store_dir.clone());
         let store = OnDiskStore::new(root);
-        let (nodes, edges) =
-            store.read_overlay(&OverlayKind::Federated).ok()??;
+        let (nodes, edges) = store.read_overlay(&OverlayKind::Federated).ok()??;
         Some(StoredOverlay { nodes, edges })
     }
 
-    /// Build provenance metadata for tool responses.
+    /// Build provenance metadata for tool responses. The toolchain
+    /// string is derived from the registered language backends rather
+    /// than hardcoded, so provenance stays truthful as backends change.
     pub fn response_meta(&self) -> serde_json::Value {
-        let freshness = codegenome_identity::store::meta::check_freshness(
-            &self.store_dir,
-            &self.source_dir,
-        );
+        let freshness =
+            codegenome_identity::store::meta::check_freshness(&self.store_dir, &self.source_dir);
+        let langs: Vec<String> = codegenome_identity::lang::all_languages()
+            .iter()
+            .map(|l| l.name().to_string())
+            .collect();
         serde_json::json!({
             "source_fresh": freshness.is_fresh,
             "last_indexed": freshness.last_indexed,
-            "toolchain": "tree-sitter-rust + heuristic-resolver",
+            "toolchain": format!("tree-sitter({}) + heuristic-resolver", langs.join(",")),
         })
     }
 }

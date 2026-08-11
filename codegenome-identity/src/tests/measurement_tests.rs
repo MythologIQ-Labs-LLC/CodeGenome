@@ -87,10 +87,7 @@ fn violation_detection_wrong_input() {
     let m = SyntaxMeasurement;
     let violation = m.detect_wrong(&false);
     assert!(violation.is_some());
-    assert_eq!(
-        violation.unwrap().failure_mode,
-        FailureMode::Observable
-    );
+    assert_eq!(violation.unwrap().failure_mode, FailureMode::Observable);
 }
 
 #[test]

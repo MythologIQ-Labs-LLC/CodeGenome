@@ -5,8 +5,6 @@ use std::path::Path;
 
 use crate::experiments::config::ExperimentStatus;
 
-pub const GENESIS_HASH: &str = "a1b2c3d4e5f6";
-
 /// Result of a single experiment run.
 #[derive(Clone, Debug)]
 pub struct ExperimentResult {

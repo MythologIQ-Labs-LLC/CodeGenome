@@ -26,8 +26,7 @@ struct RawEntry {
 /// Format: [{ "address": "hex...", "vector": [f32...], "model": "..." }]
 pub fn ingest_from_json(path: &Path) -> Result<Vec<EmbeddingEntry>, String> {
     let data = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
-    let raw: Vec<RawEntry> = serde_json::from_str(&data)
-        .map_err(|e| e.to_string())?;
+    let raw: Vec<RawEntry> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
     let now = now_timestamp();
     Ok(raw
         .into_iter()
@@ -45,8 +44,7 @@ pub fn persist_embeddings(
     store: &codegenome_identity::store::ondisk::OnDiskStore,
     entries: &[EmbeddingEntry],
 ) -> Result<(), String> {
-    let data = bincode::serialize(entries)
-        .map_err(|e| e.to_string())?;
+    let data = codegenome_identity::codec::to_vec(entries).map_err(|e| e.to_string())?;
     let path = store.base_dir().join("embeddings.bin");
     std::fs::write(&path, data).map_err(|e| e.to_string())
 }
@@ -60,7 +58,7 @@ pub fn load_embeddings(
         return Ok(Vec::new());
     }
     let data = std::fs::read(&path).map_err(|e| e.to_string())?;
-    bincode::deserialize(&data).map_err(|e| e.to_string())
+    codegenome_identity::codec::from_slice(&data).map_err(|e| e.to_string())
 }
 
 fn now_timestamp() -> Timestamp {

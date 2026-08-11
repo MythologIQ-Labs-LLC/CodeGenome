@@ -9,25 +9,17 @@ impl CodegenomeTools {
         let Some((overlay, index)) = self.load_with_index() else {
             return r#"{"error":"no index found"}"#.into();
         };
-        let Some(addr) = index.resolve(&input.file, input.line)
-        else {
+        let Some(addr) = index.resolve(&input.file, input.line) else {
             return format!(
                 r#"{{"error":"no symbol at {}:{}"}}"#,
                 input.file, input.line
             );
         };
 
-        let overlays: Vec<&dyn codegenome_identity::graph::overlay::Overlay> =
-            vec![&overlay];
+        let overlays: Vec<&dyn codegenome_identity::graph::overlay::Overlay> = vec![&overlay];
         let impact = propagate_impact(&[addr], &overlays);
-        let mut results: Vec<_> = impact
-            .iter()
-            .filter(|(_, &s)| s > 0.01)
-            .collect();
-        results.sort_by(|a, b| {
-            b.1.partial_cmp(a.1)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        let mut results: Vec<_> = impact.iter().filter(|(_, &s)| s > 0.01).collect();
+        results.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal));
 
         let items: Vec<_> = results
             .iter()
@@ -38,9 +30,7 @@ impl CodegenomeTools {
                     .iter()
                     .find(|n| n.address == **addr)
                     .and_then(|n| n.span.as_ref())
-                    .map(|s| {
-                        format!("line {}:{}", s.start_line, s.end_line)
-                    })
+                    .map(|s| format!("line {}:{}", s.start_line, s.end_line))
                     .unwrap_or_else(|| format!("{addr:?}"));
                 serde_json::json!({
                     "node": loc,

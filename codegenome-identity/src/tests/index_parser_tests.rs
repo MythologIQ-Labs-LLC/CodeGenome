@@ -5,10 +5,7 @@ use crate::graph::node::NodeKind;
 use crate::index::parser::{parse_files, ParsedFile};
 
 fn parse_snippet(code: &str) -> Vec<ParsedFile> {
-    let files = vec![(
-        PathBuf::from("test.rs"),
-        code.as_bytes().to_vec(),
-    )];
+    let files = vec![(PathBuf::from("test.rs"), code.as_bytes().to_vec())];
     parse_files(&files)
 }
 
