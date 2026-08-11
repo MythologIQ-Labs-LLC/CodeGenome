@@ -7,11 +7,11 @@ fn context_input_schema_valid() {
     let schema = schema_for!(ContextInput);
     let obj = schema.schema.object.as_ref().unwrap();
     assert!(
-        obj.required.contains(&"file".to_string()),
+        obj.required.contains("file"),
         "file should be required"
     );
     assert!(
-        obj.required.contains(&"line".to_string()),
+        obj.required.contains("line"),
         "line should be required"
     );
 }
@@ -20,8 +20,8 @@ fn context_input_schema_valid() {
 fn impact_input_schema_valid() {
     let schema = schema_for!(ImpactInput);
     let obj = schema.schema.object.as_ref().unwrap();
-    assert!(obj.required.contains(&"file".to_string()));
-    assert!(obj.required.contains(&"line".to_string()));
+    assert!(obj.required.contains("file"));
+    assert!(obj.required.contains("line"));
 }
 
 #[test]

@@ -4,7 +4,6 @@ use crate::graph::edge::Relation;
 use crate::graph::overlay::Overlay;
 use crate::overlay::flow::FlowOverlay;
 use crate::overlay::pdg::PdgOverlay;
-use crate::overlay::syntax::parse_rust_files;
 
 fn pdg_from_snippet(code: &str) -> PdgOverlay {
     let files = vec![(PathBuf::from("test.rs"), code.as_bytes().to_vec())];

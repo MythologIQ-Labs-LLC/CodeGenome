@@ -91,33 +91,33 @@ impl ServerHandler for CodegenomeTools {
            + Send
            + '_ {
         let result = dispatch_tool(self, &request);
-        std::future::ready(Ok(result))
+        std::future::ready(result)
     }
 }
 
-fn dispatch_tool(
+pub(crate) fn dispatch_tool(
     tools: &CodegenomeTools,
     req: &CallToolRequestParams,
-) -> CallToolResult {
+) -> Result<CallToolResult, McpError> {
     let text = match req.name.as_ref() {
         "codegenome_context" => {
-            let input: ContextInput = deser(req);
+            let input: ContextInput = deser(req)?;
             tools.context(&input)
         }
         "codegenome_impact" => {
-            let input: ImpactInput = deser(req);
+            let input: ImpactInput = deser(req)?;
             tools.impact(&input)
         }
         "codegenome_detect_changes" => {
-            let input: DetectInput = deser(req);
+            let input: DetectInput = deser(req)?;
             tools.detect(&input)
         }
         "codegenome_trace" => {
-            let input: TraceInput = deser(req);
+            let input: TraceInput = deser(req)?;
             tools.trace(&input)
         }
         "codegenome_reindex" => {
-            let input: ReindexInput = deser(req);
+            let input: ReindexInput = deser(req)?;
             tools.reindex(&input)
         }
         "codegenome_status" => {
@@ -125,7 +125,7 @@ fn dispatch_tool(
             tools.status_report(&src)
         }
         "codegenome_experiment_start" => {
-            let input: ExperimentStartInput = deser(req);
+            let input: ExperimentStartInput = deser(req)?;
             tools.experiment_start(
                 &input.source_dir,
                 input.max_iterations as u64,
@@ -135,12 +135,12 @@ fn dispatch_tool(
             tools.experiment_status()
         }
         "codegenome_experiment_results" => {
-            let input: ExperimentResultsInput = deser(req);
+            let input: ExperimentResultsInput = deser(req)?;
             let n = if input.last_n == 0 { 10 } else { input.last_n as usize };
             tools.experiment_results(n)
         }
         "codegenome_workspace_trace" => {
-            let input: WorkspaceTraceInput = deser(req);
+            let input: WorkspaceTraceInput = deser(req)?;
             tools.workspace_trace(
                 &input.workspace_dir,
                 &input.from_repo,
@@ -148,24 +148,32 @@ fn dispatch_tool(
             )
         }
         "codegenome_assert" => {
-            let input: AssertInput = deser(req);
+            let input: AssertInput = deser(req)?;
             tools.assert_belief(&input)
         }
-        _ => r#"{"error":"unknown tool"}"#.into(),
+        _ => {
+            return Err(McpError::invalid_params(
+                format!("unknown tool: {}", req.name),
+                None,
+            ))
+        }
     };
-    CallToolResult::success(vec![Content::text(text)])
+    Ok(CallToolResult::success(vec![Content::text(text)]))
 }
 
 fn deser<T: serde::de::DeserializeOwned>(
     req: &CallToolRequestParams,
-) -> T {
+) -> Result<T, McpError> {
     let args = req
         .arguments
         .as_ref()
         .map(|a| serde_json::Value::Object(a.clone()))
         .unwrap_or(serde_json::Value::Object(Default::default()));
-    serde_json::from_value(args).unwrap_or_else(|e| {
-        panic!("Failed to deserialize tool args: {e}")
+    serde_json::from_value(args).map_err(|e| {
+        McpError::invalid_params(
+            format!("invalid arguments for tool {}: {e}", req.name),
+            None,
+        )
     })
 }
 

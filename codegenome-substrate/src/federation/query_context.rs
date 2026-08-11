@@ -133,7 +133,7 @@ fn filter(
         .into_iter()
         .filter(|(_, conf, rel)| {
             *conf >= min_confidence
-                && relation_filter.as_ref().map_or(true, |f| f.contains(rel))
+                && relation_filter.as_ref().is_none_or(|f| f.contains(rel))
         })
         .collect()
 }

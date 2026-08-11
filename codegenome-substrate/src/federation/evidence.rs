@@ -10,7 +10,6 @@ pub fn dependency_edges(cfg: &WorkspaceConfig) -> Vec<(String, String, String)> 
         .filter_map(|repo| {
             package_and_deps(&repo.source_dir)
                 .ok()
-                .map(|(pkg, deps)| (pkg, deps))
         })
         .collect();
     cfg.repositories

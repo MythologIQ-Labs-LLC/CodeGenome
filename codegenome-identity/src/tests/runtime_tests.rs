@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use crate::graph::edge::Relation;
 use crate::graph::overlay::Overlay;
 use crate::overlay::runtime::RuntimeOverlay;
-use crate::overlay::syntax::parse_rust_files;
 
 fn write_trace(path: &std::path::Path, lines: &[&str]) {
     let mut content = "caller\tcallee\tcount\tduration_ns\n".to_string();

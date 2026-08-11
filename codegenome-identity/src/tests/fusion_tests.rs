@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::graph::edge::{Edge, Relation};
-use crate::graph::node::{Node, NodeKind, Provenance, Source, Timestamp};
+use crate::graph::node::{Node, NodeKind, Provenance, Timestamp};
 use crate::graph::overlay::Overlay;
 use crate::identity::address_of;
 use crate::overlay::fused::fuse;
@@ -147,7 +147,7 @@ fn collect_rs_files(dir: &std::path::Path) -> Vec<(PathBuf, Vec<u8>)> {
             let path = entry.path();
             if path.is_dir() {
                 files.extend(collect_rs_files(&path));
-            } else if path.extension().map_or(false, |e| e == "rs") {
+            } else if path.extension().is_some_and(|e| e == "rs") {
                 if let Ok(content) = std::fs::read(&path) {
                     files.push((path, content));
                 }

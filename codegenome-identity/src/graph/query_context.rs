@@ -110,7 +110,7 @@ fn filter_entries(
             *conf >= min_confidence
                 && relation_filter
                     .as_ref()
-                    .map_or(true, |f| f.contains(rel))
+                    .is_none_or(|f| f.contains(rel))
         })
         .collect()
 }

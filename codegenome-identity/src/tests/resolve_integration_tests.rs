@@ -1,6 +1,4 @@
-use std::path::Path;
 
-use crate::graph::overlay::Overlay;
 use crate::graph::query::Query;
 use crate::graph::resolve::FileIndex;
 use crate::graph::traversal;

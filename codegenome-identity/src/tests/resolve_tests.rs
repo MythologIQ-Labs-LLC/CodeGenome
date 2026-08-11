@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 
 use crate::graph::resolve::FileIndex;
 use crate::index::parser::parse_files;
@@ -23,7 +22,7 @@ fn build_index(code: &[(&str, &str)]) -> (FileIndex, SyntaxOverlay) {
 
 #[test]
 fn resolve_known_file_and_line() {
-    let (index, syntax) = build_index(&[
+    let (index, _syntax) = build_index(&[
         ("a.rs", "fn alpha() {}\nfn beta() {}"),
         ("b.rs", "fn gamma() {}"),
     ]);

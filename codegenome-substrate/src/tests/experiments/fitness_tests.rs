@@ -59,7 +59,7 @@ fn propagation_depth_produces_finite_score() {
     let params = ExperimentParams::default();
     let score = crate::experiments::fitness_fns::propagation_depth(&src_dir(), &params);
     eprintln!("PropagationDepth: {score:.4}");
-    assert!(score.is_finite() && score >= 0.0 && score <= 1.0);
+    assert!(score.is_finite() && (0.0..=1.0).contains(&score));
 }
 
 #[test]
@@ -67,7 +67,7 @@ fn cycle_time_produces_finite_score() {
     let params = ExperimentParams::default();
     let score = crate::experiments::fitness_fns::cycle_time(&src_dir(), &params);
     eprintln!("CycleTime: {score:.4}");
-    assert!(score.is_finite() && score >= 0.0 && score <= 1.0);
+    assert!(score.is_finite() && (0.0..=1.0).contains(&score));
 }
 
 #[test]
@@ -75,7 +75,7 @@ fn graph_density_produces_finite_score() {
     let params = ExperimentParams::default();
     let score = crate::experiments::fitness_fns::graph_density(&src_dir(), &params);
     eprintln!("GraphDensity: {score:.4}");
-    assert!(score.is_finite() && score >= 0.0 && score <= 1.0);
+    assert!(score.is_finite() && (0.0..=1.0).contains(&score));
 }
 
 #[test]
@@ -97,7 +97,7 @@ fn collect_rs_files(dir: &std::path::Path) -> Vec<(PathBuf, Vec<u8>)> {
             let path = entry.path();
             if path.is_dir() {
                 files.extend(collect_rs_files(&path));
-            } else if path.extension().map_or(false, |e| e == "rs") {
+            } else if path.extension().is_some_and(|e| e == "rs") {
                 if let Ok(content) = std::fs::read(&path) {
                     files.push((path, content));
                 }

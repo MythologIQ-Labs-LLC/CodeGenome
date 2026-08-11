@@ -3,9 +3,7 @@ use std::path::PathBuf;
 
 use crate::federation::symbol_resolve::{build_export_table, resolve_cross_repo};
 use codegenome_identity::graph::edge::Relation;
-use codegenome_identity::identity::address_of;
 use codegenome_identity::lang::rust::RustLanguage;
-use codegenome_identity::lang::LanguageSupport;
 
 #[test]
 fn cross_repo_import_produces_edge_at_0_7() {

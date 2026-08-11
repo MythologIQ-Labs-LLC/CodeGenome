@@ -160,7 +160,7 @@ fn caller() {
     assert!(impact.contains_key(&callee_addr));
     // With semantic edges, impact should reach more than just the changed node
     assert!(
-        impact.len() >= 1,
+        !impact.is_empty(),
         "Impact should propagate through semantic edges"
     );
 }
@@ -172,7 +172,7 @@ fn collect_rust_files(dir: &std::path::Path) -> Vec<(PathBuf, Vec<u8>)> {
             let path = entry.path();
             if path.is_dir() {
                 files.extend(collect_rust_files(&path));
-            } else if path.extension().map_or(false, |e| e == "rs") {
+            } else if path.extension().is_some_and(|e| e == "rs") {
                 if let Ok(content) = std::fs::read(&path) {
                     files.push((path, content));
                 }

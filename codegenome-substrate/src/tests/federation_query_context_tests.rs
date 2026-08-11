@@ -2,7 +2,6 @@ use crate::federation::query_context::FederatedQueryContext;
 use codegenome_identity::graph::edge::{Edge, Relation};
 use codegenome_identity::graph::node::{Node, NodeKind, Provenance, Timestamp};
 use codegenome_identity::graph::query::Query;
-use codegenome_identity::graph::query_context::QueryContext;
 use codegenome_identity::graph::traversal;
 use codegenome_identity::identity::address_of;
 

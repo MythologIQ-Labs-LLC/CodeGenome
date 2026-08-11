@@ -171,7 +171,7 @@ fn caller() {
     let impact = propagate_impact(&[flow_node.address], &overlays);
 
     assert!(
-        impact.len() >= 1,
+        !impact.is_empty(),
         "Impact should propagate across three overlays"
     );
 }
@@ -183,7 +183,7 @@ fn collect_rust_files(dir: &std::path::Path) -> Vec<(PathBuf, Vec<u8>)> {
             let path = entry.path();
             if path.is_dir() {
                 files.extend(collect_rust_files(&path));
-            } else if path.extension().map_or(false, |e| e == "rs") {
+            } else if path.extension().is_some_and(|e| e == "rs") {
                 if let Ok(content) = std::fs::read(&path) {
                     files.push((path, content));
                 }

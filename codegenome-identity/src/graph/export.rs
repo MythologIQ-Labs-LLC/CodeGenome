@@ -34,7 +34,7 @@ pub fn to_cytoscape_filtered(
         .filter(|e| {
             e.confidence >= min_confidence
                 && relations
-                    .map_or(true, |r| r.contains(&e.relation))
+                    .is_none_or(|r| r.contains(&e.relation))
         })
         .map(|e| {
             serde_json::json!({
