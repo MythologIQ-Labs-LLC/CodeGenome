@@ -199,30 +199,6 @@ fn symbols_with_spans(overlay: &dyn Overlay) -> Vec<codegenome_identity::graph::
         .collect()
 }
 
-pub(crate) fn collect_rs_files(dir: &Path) -> Vec<(std::path::PathBuf, Vec<u8>)> {
-    let mut files = Vec::new();
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return files;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            let excluded = path
-                .file_name()
-                .and_then(|n| n.to_str())
-                .is_some_and(codegenome_identity::lang::detect::is_excluded_dir);
-            if !excluded {
-                files.extend(collect_rs_files(&path));
-            }
-        } else if path.extension().is_some_and(|e| e == "rs") {
-            if let Ok(content) = std::fs::read(&path) {
-                files.push((path, content));
-            }
-        }
-    }
-    files
-}
-
 pub(crate) fn param_or(params: &ExperimentParams, key: &str, default: f64) -> f64 {
     params.values.get(key).copied().unwrap_or(default)
 }
