@@ -93,7 +93,7 @@ fn collect_edges(
     let mut out = Vec::new();
     for (source, target, actor) in evidence::dependency_edges(cfg)
         .into_iter()
-        .chain(evidence::identity_edges(repo_overlays).into_iter())
+        .chain(evidence::identity_edges(repo_overlays))
     {
         if let (Some(src), Some(dst)) = (repos.get(&source), repos.get(&target)) {
             out.push(edge(src.address, dst.address, actor));
