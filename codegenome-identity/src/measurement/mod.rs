@@ -13,10 +13,7 @@ pub trait Measurable {
     fn correct(&self, evidence: &Self::Evidence) -> bool;
 
     /// How do you detect when this property is wrong?
-    fn detect_wrong(
-        &self,
-        evidence: &Self::Evidence,
-    ) -> Option<Violation>;
+    fn detect_wrong(&self, evidence: &Self::Evidence) -> Option<Violation>;
 
     /// What does the failure mode look like?
     fn failure_mode(&self) -> FailureMode;

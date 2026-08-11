@@ -41,8 +41,8 @@ pub fn hill_climb_step(
     let perturbed = perturb(current, perturbation_scale);
     let result = run_experiment(infra, &perturbed, &infra.fitness_fn);
     let dominated = result.fitness > current_fitness;
-    let pareto = (result.fitness - current_fitness).abs() < 0.0001
-        && result.stability > current_stability;
+    let pareto =
+        (result.fitness - current_fitness).abs() < 0.0001 && result.stability > current_stability;
     let kept = dominated || pareto;
     (perturbed, result, kept)
 }
@@ -65,8 +65,7 @@ pub fn run_continuous(
     log_path: &Path,
     max_iterations: Option<u64>,
 ) {
-    let (mut state, start_iter) =
-        init_or_resume(infra, initial_params, log_path);
+    let (mut state, start_iter) = init_or_resume(infra, initial_params, log_path);
 
     let limit = max_iterations.unwrap_or(u64::MAX);
     for i in start_iter..=limit {
@@ -124,11 +123,17 @@ fn fresh_start(
 
 fn restore_state(cp: &Checkpoint) -> LoopState {
     let reviewer = ReviewState::resume(
-        10, 3, 0.1,
-        cp.plateau_count, cp.widen_count, cp.best_fitness,
+        10,
+        3,
+        0.1,
+        cp.plateau_count,
+        cp.widen_count,
+        cp.best_fitness,
     );
     LoopState {
-        params: ExperimentParams { values: cp.params.clone() },
+        params: ExperimentParams {
+            values: cp.params.clone(),
+        },
         fitness_fn: parse_fitness_fn(&cp.fitness_fn),
         best_fitness: cp.best_fitness,
         best_stability: cp.best_stability,
@@ -139,15 +144,13 @@ fn restore_state(cp: &Checkpoint) -> LoopState {
 }
 
 /// One iteration: hill-climb, review, adapt, log.
-fn run_iteration(
-    infra: &ExperimentInfra,
-    state: &mut LoopState,
-    i: u64,
-    log_path: &Path,
-) {
+fn run_iteration(infra: &ExperimentInfra, state: &mut LoopState, i: u64, log_path: &Path) {
     let (perturbed, mut result, kept) = hill_climb_step(
-        infra, &state.params, state.best_fitness,
-        state.best_stability, state.scale,
+        infra,
+        &state.params,
+        state.best_fitness,
+        state.best_stability,
+        state.scale,
     );
     result.iteration = i;
 
@@ -158,8 +161,11 @@ fn run_iteration(
         action
     };
     let (new_scale, new_ff) = apply_action(
-        action, &mut state.params, state.scale,
-        &state.reviewer, &mut result,
+        action,
+        &mut state.params,
+        state.scale,
+        &state.reviewer,
+        &mut result,
     );
     state.scale = new_scale;
     if let Some(ff) = new_ff {

@@ -18,15 +18,13 @@ pub struct Checkpoint {
 
 pub fn save(path: &Path, cp: &Checkpoint) -> Result<(), String> {
     let tmp = path.with_extension("tmp");
-    let json = serde_json::to_string_pretty(cp)
-        .map_err(|e| e.to_string())?;
+    let json = serde_json::to_string_pretty(cp).map_err(|e| e.to_string())?;
     std::fs::write(&tmp, json).map_err(|e| e.to_string())?;
     std::fs::rename(&tmp, path).map_err(|e| e.to_string())
 }
 
 pub fn load(path: &Path) -> Result<Checkpoint, String> {
-    let data = std::fs::read_to_string(path)
-        .map_err(|e| e.to_string())?;
+    let data = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
     serde_json::from_str(&data).map_err(|e| e.to_string())
 }
 

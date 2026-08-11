@@ -2,19 +2,14 @@ use crate::graph::node::Span;
 use crate::lang::ir::*;
 
 /// Extract control flow edges from Python source.
-pub fn extract_control_flow(
-    source: &[u8], tree: &tree_sitter::Tree,
-) -> Vec<CfEdge> {
+pub fn extract_control_flow(source: &[u8], tree: &tree_sitter::Tree) -> Vec<CfEdge> {
     let mut edges = Vec::new();
     let root = tree.root_node();
     walk_py_flow(&root, source, &mut edges);
     edges
 }
 
-fn walk_py_flow(
-    node: &tree_sitter::Node, _source: &[u8],
-    edges: &mut Vec<CfEdge>,
-) {
+fn walk_py_flow(node: &tree_sitter::Node, _source: &[u8], edges: &mut Vec<CfEdge>) {
     match node.kind() {
         "if_statement" => {
             let span = node_span(node);
@@ -71,9 +66,7 @@ fn walk_py_flow(
 }
 
 /// Extract data flow edges from Python source.
-pub fn extract_data_flow(
-    source: &[u8], tree: &tree_sitter::Tree,
-) -> Vec<DfEdge> {
+pub fn extract_data_flow(source: &[u8], tree: &tree_sitter::Tree) -> Vec<DfEdge> {
     let mut edges = Vec::new();
     let root = tree.root_node();
     let mut defs: Vec<(String, Span)> = Vec::new();
@@ -83,9 +76,7 @@ pub fn extract_data_flow(
 
     for (use_name, use_span) in &uses {
         for (def_name, def_span) in &defs {
-            if use_name == def_name
-                && use_span.start_byte > def_span.end_byte
-            {
+            if use_name == def_name && use_span.start_byte > def_span.end_byte {
                 edges.push(DfEdge {
                     def_span: *def_span,
                     use_span: *use_span,
@@ -98,10 +89,7 @@ pub fn extract_data_flow(
     edges
 }
 
-fn collect_py_defs(
-    node: &tree_sitter::Node, source: &[u8],
-    defs: &mut Vec<(String, Span)>,
-) {
+fn collect_py_defs(node: &tree_sitter::Node, source: &[u8], defs: &mut Vec<(String, Span)>) {
     if node.kind() == "assignment" {
         if let Some(left) = node.child_by_field_name("left") {
             if left.kind() == "identifier" {
@@ -117,10 +105,7 @@ fn collect_py_defs(
     }
 }
 
-fn collect_py_uses(
-    node: &tree_sitter::Node, source: &[u8],
-    uses: &mut Vec<(String, Span)>,
-) {
+fn collect_py_uses(node: &tree_sitter::Node, source: &[u8], uses: &mut Vec<(String, Span)>) {
     if node.kind() == "identifier" && !is_py_def_site(node) {
         if let Ok(name) = node.utf8_text(source) {
             uses.push((name.to_string(), node_span(node)));
@@ -134,9 +119,6 @@ fn collect_py_uses(
 
 fn is_py_def_site(node: &tree_sitter::Node) -> bool {
     node.parent()
-        .map(|p| {
-            p.kind() == "assignment"
-                && p.child_by_field_name("left") == Some(*node)
-        })
+        .map(|p| p.kind() == "assignment" && p.child_by_field_name("left") == Some(*node))
         .unwrap_or(false)
 }

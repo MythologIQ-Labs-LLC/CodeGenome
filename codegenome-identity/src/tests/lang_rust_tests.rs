@@ -4,9 +4,7 @@ use crate::lang::LanguageSupport;
 
 fn parse(code: &[u8]) -> tree_sitter::Tree {
     let mut parser = tree_sitter::Parser::new();
-    parser
-        .set_language(&RustLanguage.language())
-        .unwrap();
+    parser.set_language(&RustLanguage.language()).unwrap();
     parser.parse(code, None).unwrap()
 }
 
@@ -52,14 +50,10 @@ fn impl_trait_produces_impl_ref() {
 
 #[test]
 fn control_flow_extracts_branch_edges() {
-    let code =
-        b"fn check(x: bool) { if x { let a = 1; } else { let b = 2; } }";
+    let code = b"fn check(x: bool) { if x { let a = 1; } else { let b = 2; } }";
     let tree = parse(code);
     let edges = RustLanguage.extract_control_flow(code, &tree);
-    let branches: Vec<_> = edges
-        .iter()
-        .filter(|e| e.kind == CfKind::Branch)
-        .collect();
+    let branches: Vec<_> = edges.iter().filter(|e| e.kind == CfKind::Branch).collect();
     assert!(
         branches.len() >= 2,
         "Expected >=2 Branch edges, got {}",

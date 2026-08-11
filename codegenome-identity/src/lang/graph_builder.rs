@@ -1,9 +1,7 @@
 use std::path::Path;
 
 use crate::graph::edge::{Edge, Relation};
-use crate::graph::node::{
-    Node, NodeKind, Provenance, Source, Timestamp,
-};
+use crate::graph::node::{Node, NodeKind, Provenance, Source, Timestamp};
 use crate::identity::{address_of, UorAddress};
 use crate::lang::ir::*;
 
@@ -48,8 +46,7 @@ pub fn build_file_graph(
             confidence: 1.0,
             created_at: Timestamp(0),
             content_hash: address_of(
-                &source[sym.span.start_byte as usize
-                    ..sym.span.end_byte as usize],
+                &source[sym.span.start_byte as usize..sym.span.end_byte as usize],
             ),
             span: Some(sym.span),
         });
@@ -80,13 +77,10 @@ pub fn build_file_graph(
 
     // Calls → edges
     for call in calls {
-        let Some(&callee) = symbol_table.get(&call.callee_name)
-        else {
+        let Some(&callee) = symbol_table.get(&call.callee_name) else {
             continue;
         };
-        let caller = find_enclosing(
-            &call.caller_span, symbols,
-        );
+        let caller = find_enclosing(&call.caller_span, symbols);
         let Some(caller_addr) = caller else { continue };
         edges.push(Edge {
             source: caller_addr,
@@ -103,8 +97,7 @@ pub fn build_file_graph(
         let Some(trait_name) = &imp.trait_name else {
             continue;
         };
-        let Some(&type_addr) = symbol_table.get(&imp.type_name)
-        else {
+        let Some(&type_addr) = symbol_table.get(&imp.type_name) else {
             continue;
         };
         let Some(&trait_addr) = symbol_table.get(trait_name) else {
@@ -131,26 +124,16 @@ fn symbol_address(kind: &str, name: &str) -> UorAddress {
     address_of(format!("{kind}:{name}").as_bytes())
 }
 
-fn build_local_table(
-    symbols: &[SymbolDef],
-) -> std::collections::HashMap<String, UorAddress> {
+fn build_local_table(symbols: &[SymbolDef]) -> std::collections::HashMap<String, UorAddress> {
     symbols
         .iter()
-        .map(|s| {
-            (s.name.clone(), symbol_address(&s.source_kind, &s.name))
-        })
+        .map(|s| (s.name.clone(), symbol_address(&s.source_kind, &s.name)))
         .collect()
 }
 
-fn find_enclosing(
-    span: &crate::graph::node::Span,
-    symbols: &[SymbolDef],
-) -> Option<UorAddress> {
+fn find_enclosing(span: &crate::graph::node::Span, symbols: &[SymbolDef]) -> Option<UorAddress> {
     symbols
         .iter()
-        .find(|s| {
-            s.span.start_line <= span.start_line
-                && s.span.end_line >= span.end_line
-        })
+        .find(|s| s.span.start_line <= span.start_line && s.span.end_line >= span.end_line)
         .map(|s| symbol_address(&s.source_kind, &s.name))
 }

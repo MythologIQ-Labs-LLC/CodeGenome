@@ -5,9 +5,7 @@ use serde::{Deserialize, Serialize};
 /// describes HOW to observe it (embedding model, analysis
 /// tool, query perspective). Changing frames never changes
 /// identity.
-#[derive(
-    Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ObserverFrame {
     pub name: String,
     pub version: String,
@@ -23,11 +21,7 @@ impl ObserverFrame {
         }
     }
 
-    pub fn with_param(
-        mut self,
-        key: impl Into<String>,
-        value: impl Into<String>,
-    ) -> Self {
+    pub fn with_param(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.parameters.push((key.into(), value.into()));
         self
     }

@@ -1,9 +1,7 @@
 use crate::diff::propagator::propagate;
 use crate::diff::{DiffStatus, OwnedDiff, OwnedDiffFile, OwnedHunk};
 use crate::graph::edge::{Edge, Relation};
-use crate::graph::node::{
-    Node, NodeKind, Provenance, Span, Timestamp,
-};
+use crate::graph::node::{Node, NodeKind, Provenance, Span, Timestamp};
 use crate::graph::overlay::{Overlay, OverlayKind};
 use crate::identity::address_of;
 use crate::measurement::GroundTruthLevel;

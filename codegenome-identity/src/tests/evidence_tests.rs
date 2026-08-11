@@ -13,11 +13,17 @@ fn sample_entry() -> EvidenceEntry {
 #[test]
 fn evidence_chain_is_deterministic() {
     let h1 = evidence::log_evidence(
-        &temp_path("det1"), &sample_entry(), &evidence::genesis_hash(),
-    ).unwrap();
+        &temp_path("det1"),
+        &sample_entry(),
+        &evidence::genesis_hash(),
+    )
+    .unwrap();
     let h2 = evidence::log_evidence(
-        &temp_path("det2"), &sample_entry(), &evidence::genesis_hash(),
-    ).unwrap();
+        &temp_path("det2"),
+        &sample_entry(),
+        &evidence::genesis_hash(),
+    )
+    .unwrap();
     assert_eq!(h1, h2);
 }
 

@@ -13,10 +13,18 @@ pub struct PdgOverlay {
 }
 
 impl Overlay for PdgOverlay {
-    fn kind(&self) -> OverlayKind { OverlayKind::Custom("pdg".into()) }
-    fn nodes(&self) -> &[Node] { &self.nodes }
-    fn edges(&self) -> &[Edge] { &self.edges }
-    fn ground_truth(&self) -> GroundTruthLevel { GroundTruthLevel::Available }
+    fn kind(&self) -> OverlayKind {
+        OverlayKind::Custom("pdg".into())
+    }
+    fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+    fn edges(&self) -> &[Edge] {
+        &self.edges
+    }
+    fn ground_truth(&self) -> GroundTruthLevel {
+        GroundTruthLevel::Available
+    }
 }
 
 impl PdgOverlay {
@@ -29,7 +37,9 @@ impl PdgOverlay {
             justification: None,
         };
 
-        let mut edges: Vec<Edge> = flow.edges().iter()
+        let mut edges: Vec<Edge> = flow
+            .edges()
+            .iter()
             .filter(|e| e.relation == Relation::DataFlow)
             .cloned()
             .collect();
@@ -48,15 +58,16 @@ impl PdgOverlay {
             }
         }
 
-        Self { nodes: Vec::new(), edges }
+        Self {
+            nodes: Vec::new(),
+            edges,
+        }
     }
 }
 
 /// Find nodes with multiple outgoing ControlFlow edges (branch points)
 /// and their immediate targets (control-dependent nodes).
-fn find_branch_targets(
-    flow: &FlowOverlay,
-) -> HashMap<UorAddress, Vec<UorAddress>> {
+fn find_branch_targets(flow: &FlowOverlay) -> HashMap<UorAddress, Vec<UorAddress>> {
     let mut outgoing: HashMap<UorAddress, Vec<UorAddress>> = HashMap::new();
     for edge in flow.edges() {
         if edge.relation == Relation::ControlFlow {

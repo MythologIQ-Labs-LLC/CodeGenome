@@ -19,9 +19,7 @@ pub fn k_nearest(
         .map(|e| (e.address, cosine_similarity(query_vec, &e.vector)))
         .collect();
 
-    scored.sort_by(|a, b| {
-        b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
-    });
+    scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
     scored.truncate(k);
     scored
 }

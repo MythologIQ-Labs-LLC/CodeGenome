@@ -36,10 +36,8 @@ pub fn parse_files_multi(
     file_groups: &HashMap<&str, Vec<(PathBuf, Vec<u8>)>>,
     languages: &[Box<dyn LanguageSupport>],
 ) -> Vec<ParsedFile> {
-    let lang_map: HashMap<&str, &dyn LanguageSupport> = languages
-        .iter()
-        .map(|l| (l.name(), l.as_ref()))
-        .collect();
+    let lang_map: HashMap<&str, &dyn LanguageSupport> =
+        languages.iter().map(|l| (l.name(), l.as_ref())).collect();
 
     let mut parsed = Vec::new();
     for (lang_name, files) in file_groups {
@@ -58,11 +56,7 @@ pub fn parse_files_multi(
 }
 
 /// Parse a single file with an existing parser instance.
-fn parse_one(
-    parser: &mut tree_sitter::Parser,
-    path: &Path,
-    source: &[u8],
-) -> ParsedFile {
+fn parse_one(parser: &mut tree_sitter::Parser, path: &Path, source: &[u8]) -> ParsedFile {
     let file_content = format!("file:{}", path.display());
     let file_address = address_of(file_content.as_bytes());
     let content_hash = address_of(source);
@@ -86,8 +80,7 @@ fn parse_one(
     let mut edges = Vec::new();
 
     if let Some(tree) = parser.parse(source, None) {
-        let (sym_nodes, sym_edges) =
-            extract_symbols(file_address, source, &tree, &provenance);
+        let (sym_nodes, sym_edges) = extract_symbols(file_address, source, &tree, &provenance);
         nodes.extend(sym_nodes);
         edges.extend(sym_edges);
     }
@@ -137,9 +130,7 @@ fn extract_symbols(
             provenance: provenance.clone(),
             confidence: 1.0,
             created_at: provenance.timestamp,
-            content_hash: address_of(
-                &source[child.start_byte()..child.end_byte()],
-            ),
+            content_hash: address_of(&source[child.start_byte()..child.end_byte()]),
             span: Some(span),
         });
 

@@ -30,10 +30,7 @@ pub struct IndexResult {
 
 /// Shared index pipeline: check freshness, build overlays, fuse, store.
 /// Returns immediately if index is fresh.
-pub fn run_pipeline(
-    source_dir: &Path,
-    store_dir: &Path,
-) -> Result<IndexResult, String> {
+pub fn run_pipeline(source_dir: &Path, store_dir: &Path) -> Result<IndexResult, String> {
     let freshness = meta::check_freshness(store_dir, source_dir);
     if freshness.is_fresh {
         if let Ok(Some(m)) = meta::load(store_dir) {
@@ -50,10 +47,7 @@ pub fn run_pipeline(
     let start = std::time::Instant::now();
     let files = collect_source_files(source_dir);
     if files.is_empty() {
-        return Err(format!(
-            "No source files in {}",
-            source_dir.display()
-        ));
+        return Err(format!("No source files in {}", source_dir.display()));
     }
 
     let languages = crate::lang::all_languages();

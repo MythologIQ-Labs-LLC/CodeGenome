@@ -1,4 +1,3 @@
-
 use crate::tools::gate::check_write_privilege;
 
 #[test]
@@ -12,13 +11,8 @@ fn valid_actor_with_fresh_source_allowed() {
     let _ = std::fs::create_dir_all(&store);
 
     // No meta.json → freshness is_fresh=false → Deny
-    let result = check_write_privilege(
-        &dir, &store, "claude-code",
-    );
-    assert!(
-        result.is_err(),
-        "Should deny: no index meta means stale"
-    );
+    let result = check_write_privilege(&dir, &store, "claude-code");
+    assert!(result.is_err(), "Should deny: no index meta means stale");
     let _ = std::fs::remove_dir_all(&dir);
 }
 

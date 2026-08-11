@@ -29,22 +29,17 @@ impl FileIndex {
         for path in &files {
             let file_addr = file_address(path);
             // Find nodes connected by Contains edges from this file
-            let child_addrs: std::collections::HashSet<UorAddress> =
-                edges
-                    .iter()
-                    .filter(|e| {
-                        e.source == file_addr
-                            && e.relation
-                                == crate::graph::edge::Relation::Contains
-                    })
-                    .map(|e| e.target)
-                    .collect();
+            let child_addrs: std::collections::HashSet<UorAddress> = edges
+                .iter()
+                .filter(|e| {
+                    e.source == file_addr && e.relation == crate::graph::edge::Relation::Contains
+                })
+                .map(|e| e.target)
+                .collect();
 
             let children: Vec<NodeRef> = nodes
                 .iter()
-                .filter(|n| {
-                    n.span.is_some() && child_addrs.contains(&n.address)
-                })
+                .filter(|n| n.span.is_some() && child_addrs.contains(&n.address))
                 .map(|n| NodeRef {
                     address: n.address,
                     span: n.span.unwrap(),
@@ -60,14 +55,11 @@ impl FileIndex {
 
     /// Resolve a file path + line number to a UorAddress.
     /// Matches by path suffix for ergonomics.
-    pub fn resolve(
-        &self,
-        file: &str,
-        line: u32,
-    ) -> Option<UorAddress> {
-        let matching = self.entries.iter().find(|(path, _, _)| {
-            path_matches_suffix(path, file)
-        })?;
+    pub fn resolve(&self, file: &str, line: u32) -> Option<UorAddress> {
+        let matching = self
+            .entries
+            .iter()
+            .find(|(path, _, _)| path_matches_suffix(path, file))?;
         matching
             .2
             .iter()

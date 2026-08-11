@@ -3,10 +3,7 @@ use crate::experiments::review::Action;
 
 /// Build a prompt from experiment history for the LLM advisor.
 /// Pure function: history in, prompt string out.
-pub fn build_prompt(
-    history: &[ExperimentResult],
-    available_fitness: &[&str],
-) -> String {
+pub fn build_prompt(history: &[ExperimentResult], available_fitness: &[&str]) -> String {
     let mut prompt = String::from(
         "You are analyzing experiment results for a code graph system.\n\
          Given the history below, recommend ONE action.\n\n\
@@ -15,8 +12,7 @@ pub fn build_prompt(
     for r in history.iter().rev().take(20) {
         prompt.push_str(&format!(
             "{}\t{:.4}\t{:.4}\t{}\t{}\n",
-            r.iteration, r.fitness, r.stability,
-            r.cycle_time_ms, r.description,
+            r.iteration, r.fitness, r.stability, r.cycle_time_ms, r.description,
         ));
     }
     prompt.push_str("\nAVAILABLE ACTIONS:\n");
@@ -32,19 +28,12 @@ pub fn build_prompt(
 
 /// Query a local LLM via mistralrs. Blocks on a scoped tokio runtime.
 /// Returns the raw response text or an error.
-pub fn query_model(
-    prompt: &str,
-    model_id: &str,
-) -> Result<String, String> {
-    let rt = tokio::runtime::Runtime::new()
-        .map_err(|e| format!("tokio init failed: {e}"))?;
+pub fn query_model(prompt: &str, model_id: &str) -> Result<String, String> {
+    let rt = tokio::runtime::Runtime::new().map_err(|e| format!("tokio init failed: {e}"))?;
     rt.block_on(query_model_async(prompt, model_id))
 }
 
-async fn query_model_async(
-    prompt: &str,
-    model_id: &str,
-) -> Result<String, String> {
+async fn query_model_async(prompt: &str, model_id: &str) -> Result<String, String> {
     use mistralrs::{IsqBits, ModelBuilder};
 
     let model = ModelBuilder::new(model_id)
@@ -79,11 +68,7 @@ pub fn parse_advice(response: &str) -> Action {
 
 /// Top-level advisor: build prompt, query model, parse response.
 /// Gracefully degrades to Continue on any failure.
-pub fn advise(
-    history: &[ExperimentResult],
-    model_id: &str,
-    available_fitness: &[&str],
-) -> Action {
+pub fn advise(history: &[ExperimentResult], model_id: &str, available_fitness: &[&str]) -> Action {
     let prompt = build_prompt(history, available_fitness);
     match query_model(&prompt, model_id) {
         Ok(response) => {
@@ -102,5 +87,9 @@ fn extract_switch_fitness(lower: &str, original: &str) -> Option<String> {
     let start = lower.find(marker)? + marker.len();
     let end = original[start..].find(')')? + start;
     let name = original[start..end].trim().to_string();
-    if name.is_empty() { None } else { Some(name) }
+    if name.is_empty() {
+        None
+    } else {
+        Some(name)
+    }
 }

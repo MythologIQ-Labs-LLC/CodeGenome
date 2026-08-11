@@ -1,18 +1,17 @@
 use std::path::{Path, PathBuf};
 
+use codegenome_identity::graph::overlay::OverlayKind;
 use codegenome_substrate::experiments::config::*;
 use codegenome_substrate::experiments::runner;
-use codegenome_identity::graph::overlay::OverlayKind;
 
-pub fn run(
-    source_dir: &str,
-    log_file: &str,
-    max_iterations: Option<u64>,
-    model: Option<String>,
-) {
+pub fn run(source_dir: &str, log_file: &str, max_iterations: Option<u64>, model: Option<String>) {
     let infra = ExperimentInfra {
         source_dir: PathBuf::from(source_dir),
-        overlays: vec![OverlayKind::Syntax, OverlayKind::Semantic, OverlayKind::Flow],
+        overlays: vec![
+            OverlayKind::Syntax,
+            OverlayKind::Semantic,
+            OverlayKind::Flow,
+        ],
         fitness_fn: FitnessFunction::ImpactAccuracy,
         model_id: model.clone(),
     };
@@ -31,12 +30,7 @@ pub fn run(
     }
     println!("==================================");
 
-    runner::run_continuous(
-        &infra,
-        params,
-        Path::new(log_file),
-        max_iterations,
-    );
+    runner::run_continuous(&infra, params, Path::new(log_file), max_iterations);
 
     println!("Experiment loop complete.");
 }

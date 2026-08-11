@@ -11,10 +11,18 @@ pub struct LspOverlay {
 }
 
 impl Overlay for LspOverlay {
-    fn kind(&self) -> OverlayKind { OverlayKind::Semantic }
-    fn nodes(&self) -> &[Node] { &self.nodes }
-    fn edges(&self) -> &[Edge] { &self.edges }
-    fn ground_truth(&self) -> GroundTruthLevel { GroundTruthLevel::Available }
+    fn kind(&self) -> OverlayKind {
+        OverlayKind::Semantic
+    }
+    fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+    fn edges(&self) -> &[Edge] {
+        &self.edges
+    }
+    fn ground_truth(&self) -> GroundTruthLevel {
+        GroundTruthLevel::Available
+    }
 }
 
 impl LspOverlay {
@@ -23,9 +31,15 @@ impl LspOverlay {
     pub fn from_workspace(root: &Path) -> Self {
         let Ok(edges) = query_rust_analyzer(root) else {
             eprintln!("[LSP] rust-analyzer not available, returning empty overlay");
-            return Self { nodes: Vec::new(), edges: Vec::new() };
+            return Self {
+                nodes: Vec::new(),
+                edges: Vec::new(),
+            };
         };
-        Self { nodes: Vec::new(), edges }
+        Self {
+            nodes: Vec::new(),
+            edges,
+        }
     }
 }
 

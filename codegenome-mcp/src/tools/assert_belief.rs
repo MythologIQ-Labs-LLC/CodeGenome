@@ -1,8 +1,8 @@
+use codegenome_identity::store::meta;
+use codegenome_identity::store::ondisk::OnDiskStore;
 use codegenome_substrate::belief::create::{create_belief, BeliefSpec};
 use codegenome_substrate::belief::store::persist_beliefs;
 use codegenome_substrate::governance::write_gate::WriteGatePolicy;
-use codegenome_identity::store::meta;
-use codegenome_identity::store::ondisk::OnDiskStore;
 
 use crate::tools::inputs::AssertInput;
 use crate::tools::CodegenomeTools;
@@ -13,9 +13,7 @@ impl CodegenomeTools {
         let Some((_overlay, index)) = self.load_with_index() else {
             return r#"{"error":"no index found"}"#.into();
         };
-        let Some(subject) = index.resolve(
-            &input.subject_file, input.subject_line,
-        ) else {
+        let Some(subject) = index.resolve(&input.subject_file, input.subject_line) else {
             return format!(
                 r#"{{"error":"no symbol at {}:{}"}}"#,
                 input.subject_file, input.subject_line
@@ -24,9 +22,7 @@ impl CodegenomeTools {
 
         // Write gate check
         let policy = WriteGatePolicy::default_policy();
-        let freshness = meta::check_freshness(
-            &self.store_dir, &self.source_dir,
-        );
+        let freshness = meta::check_freshness(&self.store_dir, &self.source_dir);
         let request = codegenome_substrate::governance::write_gate::WriteRequest {
             actor: input.actor.clone(),
             toolchain_version: "belief-api".into(),
@@ -38,7 +34,8 @@ impl CodegenomeTools {
             return serde_json::json!({
                 "error": "write denied",
                 "reason": reason,
-            }).to_string();
+            })
+            .to_string();
         }
 
         let spec = BeliefSpec {
@@ -63,6 +60,7 @@ impl CodegenomeTools {
             "claim": input.claim,
             "subject": format!("{}:{}", input.subject_file, input.subject_line),
             "confidence": input.confidence,
-        }).to_string()
+        })
+        .to_string()
     }
 }

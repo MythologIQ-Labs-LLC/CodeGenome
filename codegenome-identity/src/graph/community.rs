@@ -20,17 +20,12 @@ pub fn find_components(
     relations: &[Relation],
     min_confidence: f64,
 ) -> Vec<Component> {
-    let mut parent: HashMap<UorAddress, UorAddress> = nodes
-        .iter()
-        .map(|n| (n.address, n.address))
-        .collect();
+    let mut parent: HashMap<UorAddress, UorAddress> =
+        nodes.iter().map(|n| (n.address, n.address)).collect();
 
     let filtered: Vec<&Edge> = edges
         .iter()
-        .filter(|e| {
-            e.confidence >= min_confidence
-                && relations.contains(&e.relation)
-        })
+        .filter(|e| e.confidence >= min_confidence && relations.contains(&e.relation))
         .collect();
 
     for edge in &filtered {
@@ -53,14 +48,10 @@ pub fn find_components(
         .into_values()
         .filter(|members| members.len() > 1)
         .map(|members| {
-            let member_set: std::collections::HashSet<_> =
-                members.iter().copied().collect();
+            let member_set: std::collections::HashSet<_> = members.iter().copied().collect();
             let component_edges: Vec<&Edge> = filtered
                 .iter()
-                .filter(|e| {
-                    member_set.contains(&e.source)
-                        && member_set.contains(&e.target)
-                })
+                .filter(|e| member_set.contains(&e.source) && member_set.contains(&e.target))
                 .copied()
                 .collect();
             let avg = if component_edges.is_empty() {
@@ -79,21 +70,20 @@ pub fn find_components(
 }
 
 /// Convenience: find components using Calls + Imports edges.
-pub fn module_clusters(
-    nodes: &[Node], edges: &[Edge], min_confidence: f64,
-) -> Vec<Component> {
+pub fn module_clusters(nodes: &[Node], edges: &[Edge], min_confidence: f64) -> Vec<Component> {
     find_components(
-        nodes, edges,
+        nodes,
+        edges,
         &[Relation::Calls, Relation::Imports],
         min_confidence,
     )
 }
 
-fn find(
-    parent: &HashMap<UorAddress, UorAddress>, mut addr: UorAddress,
-) -> UorAddress {
+fn find(parent: &HashMap<UorAddress, UorAddress>, mut addr: UorAddress) -> UorAddress {
     while let Some(&p) = parent.get(&addr) {
-        if p == addr { break; }
+        if p == addr {
+            break;
+        }
         addr = p;
     }
     addr

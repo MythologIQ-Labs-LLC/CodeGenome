@@ -36,13 +36,8 @@ impl SemanticOverlay {
     }
 
     /// Backward-compatible wrapper. Delegates to index::resolver.
-    pub fn from_syntax(
-        _syntax: &SyntaxOverlay,
-        files: &[(PathBuf, Vec<u8>)],
-    ) -> Self {
+    pub fn from_syntax(_syntax: &SyntaxOverlay, files: &[(PathBuf, Vec<u8>)]) -> Self {
         let parsed = crate::index::parser::parse_files(files);
-        Self::from_resolved(
-            &crate::index::resolver::resolve(&parsed, files),
-        )
+        Self::from_resolved(&crate::index::resolver::resolve(&parsed, files))
     }
 }

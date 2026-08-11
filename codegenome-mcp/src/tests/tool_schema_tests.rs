@@ -6,14 +6,8 @@ use crate::tools::inputs::*;
 fn context_input_schema_valid() {
     let schema = schema_for!(ContextInput);
     let obj = schema.schema.object.as_ref().unwrap();
-    assert!(
-        obj.required.contains("file"),
-        "file should be required"
-    );
-    assert!(
-        obj.required.contains("line"),
-        "line should be required"
-    );
+    assert!(obj.required.contains("file"), "file should be required");
+    assert!(obj.required.contains("line"), "line should be required");
 }
 
 #[test]
@@ -26,16 +20,14 @@ fn impact_input_schema_valid() {
 
 #[test]
 fn detect_input_defaults_from_ref() {
-    let input: DetectInput =
-        serde_json::from_str("{}").unwrap();
+    let input: DetectInput = serde_json::from_str("{}").unwrap();
     assert_eq!(input.from_ref, "HEAD");
     assert!(input.to_ref.is_none());
 }
 
 #[test]
 fn reindex_input_defaults_actor() {
-    let input: ReindexInput =
-        serde_json::from_str("{}").unwrap();
+    let input: ReindexInput = serde_json::from_str("{}").unwrap();
     assert_eq!(input.actor, "claude-code");
 }
 

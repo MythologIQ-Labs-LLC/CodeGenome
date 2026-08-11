@@ -1,9 +1,7 @@
 use crate::lang::ir::*;
 
 /// Extract control flow edges within Rust function bodies.
-pub fn extract_control_flow(
-    source: &[u8], tree: &tree_sitter::Tree,
-) -> Vec<CfEdge> {
+pub fn extract_control_flow(source: &[u8], tree: &tree_sitter::Tree) -> Vec<CfEdge> {
     let mut edges = Vec::new();
     let root = tree.root_node();
     let mut cursor = root.walk();
@@ -18,9 +16,7 @@ pub fn extract_control_flow(
 }
 
 /// Extract data flow edges within Rust function bodies.
-pub fn extract_data_flow(
-    source: &[u8], tree: &tree_sitter::Tree,
-) -> Vec<DfEdge> {
+pub fn extract_data_flow(source: &[u8], tree: &tree_sitter::Tree) -> Vec<DfEdge> {
     let mut edges = Vec::new();
     let root = tree.root_node();
     let mut cursor = root.walk();
@@ -34,11 +30,7 @@ pub fn extract_data_flow(
     edges
 }
 
-fn extract_block_flow(
-    block: &tree_sitter::Node,
-    source: &[u8],
-    edges: &mut Vec<CfEdge>,
-) {
+fn extract_block_flow(block: &tree_sitter::Node, source: &[u8], edges: &mut Vec<CfEdge>) {
     let stmts = block_statements(block);
     for pair in stmts.windows(2) {
         edges.push(CfEdge {
@@ -52,16 +44,11 @@ fn extract_block_flow(
     }
 }
 
-fn extract_control_structure(
-    node: &tree_sitter::Node,
-    source: &[u8],
-    edges: &mut Vec<CfEdge>,
-) {
+fn extract_control_structure(node: &tree_sitter::Node, source: &[u8], edges: &mut Vec<CfEdge>) {
     match node.kind() {
         "if_expression" => extract_if_flow(node, source, edges),
         "match_expression" => extract_match_flow(node, edges),
-        "loop_expression" | "while_expression"
-        | "for_expression" => {
+        "loop_expression" | "while_expression" | "for_expression" => {
             extract_loop_flow(node, source, edges);
         }
         "return_expression" => {
@@ -80,11 +67,7 @@ fn extract_control_structure(
     }
 }
 
-fn extract_if_flow(
-    node: &tree_sitter::Node,
-    source: &[u8],
-    edges: &mut Vec<CfEdge>,
-) {
+fn extract_if_flow(node: &tree_sitter::Node, source: &[u8], edges: &mut Vec<CfEdge>) {
     let if_span = node_span(node);
     if let Some(cons) = node.child_by_field_name("consequence") {
         edges.push(CfEdge {
@@ -113,9 +96,7 @@ fn extract_if_flow(
     }
 }
 
-fn extract_match_flow(
-    node: &tree_sitter::Node, edges: &mut Vec<CfEdge>,
-) {
+fn extract_match_flow(node: &tree_sitter::Node, edges: &mut Vec<CfEdge>) {
     let span = node_span(node);
     if let Some(body) = node.child_by_field_name("body") {
         let mut c = body.walk();
@@ -131,11 +112,7 @@ fn extract_match_flow(
     }
 }
 
-fn extract_loop_flow(
-    node: &tree_sitter::Node,
-    source: &[u8],
-    edges: &mut Vec<CfEdge>,
-) {
+fn extract_loop_flow(node: &tree_sitter::Node, source: &[u8], edges: &mut Vec<CfEdge>) {
     let loop_span = node_span(node);
     if let Some(body) = node.child_by_field_name("body") {
         edges.push(CfEdge {
@@ -147,11 +124,7 @@ fn extract_loop_flow(
     }
 }
 
-fn extract_fn_data_flow(
-    body: &tree_sitter::Node,
-    source: &[u8],
-    edges: &mut Vec<DfEdge>,
-) {
+fn extract_fn_data_flow(body: &tree_sitter::Node, source: &[u8], edges: &mut Vec<DfEdge>) {
     let mut defs: Vec<(String, crate::graph::node::Span)> = Vec::new();
     collect_let_defs(body, source, &mut defs);
     let mut uses: Vec<(String, crate::graph::node::Span)> = Vec::new();
@@ -159,9 +132,7 @@ fn extract_fn_data_flow(
 
     for (use_name, use_span) in &uses {
         for (def_name, def_span) in &defs {
-            if use_name == def_name
-                && use_span.start_byte > def_span.end_byte
-            {
+            if use_name == def_name && use_span.start_byte > def_span.end_byte {
                 edges.push(DfEdge {
                     def_span: *def_span,
                     use_span: *use_span,
@@ -174,7 +145,8 @@ fn extract_fn_data_flow(
 }
 
 fn collect_let_defs(
-    node: &tree_sitter::Node, source: &[u8],
+    node: &tree_sitter::Node,
+    source: &[u8],
     defs: &mut Vec<(String, crate::graph::node::Span)>,
 ) {
     if node.kind() == "let_declaration" {
@@ -191,7 +163,8 @@ fn collect_let_defs(
 }
 
 fn collect_ident_uses(
-    node: &tree_sitter::Node, source: &[u8],
+    node: &tree_sitter::Node,
+    source: &[u8],
     uses: &mut Vec<(String, crate::graph::node::Span)>,
 ) {
     if node.kind() == "identifier" && !is_def_site(node) {
@@ -207,16 +180,11 @@ fn collect_ident_uses(
 
 fn is_def_site(node: &tree_sitter::Node) -> bool {
     node.parent()
-        .map(|p| {
-            p.kind() == "let_declaration"
-                && p.child_by_field_name("pattern") == Some(*node)
-        })
+        .map(|p| p.kind() == "let_declaration" && p.child_by_field_name("pattern") == Some(*node))
         .unwrap_or(false)
 }
 
-fn block_statements<'a>(
-    block: &'a tree_sitter::Node<'a>,
-) -> Vec<tree_sitter::Node<'a>> {
+fn block_statements<'a>(block: &'a tree_sitter::Node<'a>) -> Vec<tree_sitter::Node<'a>> {
     let mut stmts = Vec::new();
     let mut c = block.walk();
     for child in block.children(&mut c) {

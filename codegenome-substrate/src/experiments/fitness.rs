@@ -13,11 +13,7 @@ use codegenome_identity::overlay::syntax::parse_rust_files;
 pub use crate::experiments::fitness_fns;
 
 /// Dispatch a fitness function by enum variant.
-pub fn dispatch(
-    func: &FitnessFunction,
-    source_dir: &Path,
-    params: &ExperimentParams,
-) -> f64 {
+pub fn dispatch(func: &FitnessFunction, source_dir: &Path, params: &ExperimentParams) -> f64 {
     match func {
         FitnessFunction::ImpactAccuracy => impact_accuracy(source_dir, params),
         FitnessFunction::PropagationDepth => fitness_fns::propagation_depth(source_dir, params),
@@ -30,10 +26,7 @@ pub fn dispatch(
 /// Impact prediction accuracy: for each sampled symbol,
 /// propagate from it with attenuation and check what
 /// fraction of its siblings are reached above threshold.
-pub fn impact_accuracy(
-    source_dir: &Path,
-    params: &ExperimentParams,
-) -> f64 {
+pub fn impact_accuracy(source_dir: &Path, params: &ExperimentParams) -> f64 {
     let Some(fused) = build_overlays(source_dir) else {
         return 0.0;
     };
@@ -56,9 +49,7 @@ pub fn impact_accuracy(
         }
         let parent = find_parent(&fused, symbol.address);
         let root = parent.unwrap_or(symbol.address);
-        let impact = depth_propagate(
-            root, &overlays, atten, threshold,
-        );
+        let impact = depth_propagate(root, &overlays, atten, threshold);
         let sibling_hits: f64 = siblings
             .iter()
             .filter_map(|addr| impact.get(addr))
@@ -77,10 +68,7 @@ pub fn impact_accuracy(
 /// Stability: run depth-attenuated propagation with two
 /// different attenuation factors and measure how many nodes'
 /// inclusion changes. Uses BFS depth to apply attenuation.
-pub fn stability(
-    source_dir: &Path,
-    params: &ExperimentParams,
-) -> f64 {
+pub fn stability(source_dir: &Path, params: &ExperimentParams) -> f64 {
     let Some(fused) = build_overlays(source_dir) else {
         return 1.0;
     };
@@ -102,10 +90,7 @@ pub fn stability(
     let perturbed = atten * 0.9;
     let set_b = depth_propagate(root, &overlays, perturbed, threshold);
 
-    let all_keys: std::collections::HashSet<_> = set_a
-        .keys()
-        .chain(set_b.keys())
-        .collect();
+    let all_keys: std::collections::HashSet<_> = set_a.keys().chain(set_b.keys()).collect();
     let total = all_keys.len().max(1) as f64;
     let sum_diff: f64 = all_keys
         .iter()
@@ -151,8 +136,7 @@ pub(crate) fn depth_propagate(
                 if edge.source != node {
                     continue;
                 }
-                let child_score =
-                    (score * edge.confidence * attenuation).min(1.0);
+                let child_score = (score * edge.confidence * attenuation).min(1.0);
                 if child_score < threshold {
                     continue;
                 }
@@ -167,31 +151,21 @@ pub(crate) fn depth_propagate(
     scores
 }
 
-fn find_parent(
-    overlay: &dyn Overlay,
-    addr: UorAddress,
-) -> Option<UorAddress> {
+fn find_parent(overlay: &dyn Overlay, addr: UorAddress) -> Option<UorAddress> {
     overlay
         .edges()
         .iter()
-        .find(|e| {
-            e.target == addr && e.relation == Relation::Contains
-        })
+        .find(|e| e.target == addr && e.relation == Relation::Contains)
         .map(|e| e.source)
 }
 
 /// Find sibling symbols: nodes sharing a Contains parent
 /// with `addr` in the same file.
-fn find_siblings(
-    overlay: &dyn Overlay,
-    addr: UorAddress,
-) -> Vec<UorAddress> {
+fn find_siblings(overlay: &dyn Overlay, addr: UorAddress) -> Vec<UorAddress> {
     let parents: Vec<UorAddress> = overlay
         .edges()
         .iter()
-        .filter(|e| {
-            e.target == addr && e.relation == Relation::Contains
-        })
+        .filter(|e| e.target == addr && e.relation == Relation::Contains)
         .map(|e| e.source)
         .collect();
 
@@ -207,22 +181,16 @@ fn find_siblings(
     siblings
 }
 
-fn symbols_with_spans(
-    overlay: &dyn Overlay,
-) -> Vec<codegenome_identity::graph::node::Node> {
+fn symbols_with_spans(overlay: &dyn Overlay) -> Vec<codegenome_identity::graph::node::Node> {
     overlay
         .nodes()
         .iter()
-        .filter(|n| {
-            n.kind == NodeKind::Symbol && n.span.is_some()
-        })
+        .filter(|n| n.kind == NodeKind::Symbol && n.span.is_some())
         .cloned()
         .collect()
 }
 
-pub(crate) fn collect_rs_files(
-    dir: &Path,
-) -> Vec<(std::path::PathBuf, Vec<u8>)> {
+pub(crate) fn collect_rs_files(dir: &Path) -> Vec<(std::path::PathBuf, Vec<u8>)> {
     let mut files = Vec::new();
     let Ok(entries) = std::fs::read_dir(dir) else {
         return files;
@@ -240,10 +208,6 @@ pub(crate) fn collect_rs_files(
     files
 }
 
-pub(crate) fn param_or(
-    params: &ExperimentParams,
-    key: &str,
-    default: f64,
-) -> f64 {
+pub(crate) fn param_or(params: &ExperimentParams, key: &str, default: f64) -> f64 {
     params.values.get(key).copied().unwrap_or(default)
 }

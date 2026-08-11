@@ -8,7 +8,11 @@ use codegenome_identity::overlay::semantic::SemanticOverlay;
 use codegenome_identity::overlay::syntax::parse_rust_files;
 
 fn src_dir() -> PathBuf {
-    PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../codegenome-identity")).join("src")
+    PathBuf::from(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../codegenome-identity"
+    ))
+    .join("src")
 }
 
 #[test]
@@ -83,9 +87,9 @@ fn graph_density_three_layer_greater_than_syntax() {
     let dir = src_dir();
     let files = collect_rs_files(&dir);
     let syntax = parse_rust_files(&files);
-    let syntax_density = syntax.edges().len() as f64
-        / syntax.nodes().len().max(1) as f64;
-    let three_density = crate::experiments::fitness_fns::graph_density(&dir, &ExperimentParams::default());
+    let syntax_density = syntax.edges().len() as f64 / syntax.nodes().len().max(1) as f64;
+    let three_density =
+        crate::experiments::fitness_fns::graph_density(&dir, &ExperimentParams::default());
     eprintln!("Syntax density: {syntax_density:.4}, Three-layer: {three_density:.4}");
     assert!(three_density >= syntax_density.min(1.0));
 }

@@ -4,8 +4,8 @@ use crate::graph::edge::{Edge, Relation};
 use crate::graph::node::{Node, NodeKind, Provenance, Timestamp};
 use crate::graph::overlay::Overlay;
 use crate::identity::address_of;
-use crate::overlay::fused::fuse;
 use crate::overlay::flow::FlowOverlay;
+use crate::overlay::fused::fuse;
 use crate::overlay::semantic::SemanticOverlay;
 use crate::overlay::syntax::parse_rust_files;
 
@@ -49,8 +49,12 @@ impl Overlay for SimpleOverlay {
     fn kind(&self) -> crate::graph::overlay::OverlayKind {
         crate::graph::overlay::OverlayKind::Custom("test".into())
     }
-    fn nodes(&self) -> &[Node] { &self.nodes }
-    fn edges(&self) -> &[Edge] { &self.edges }
+    fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+    fn edges(&self) -> &[Edge] {
+        &self.edges
+    }
     fn ground_truth(&self) -> crate::measurement::GroundTruthLevel {
         crate::measurement::GroundTruthLevel::Available
     }

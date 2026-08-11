@@ -14,15 +14,29 @@ fn scip_reference_produces_edge() {
     let doc = ScipDocument {
         relative_path: "main.rs".into(),
         occurrences: vec![
-            Occurrence { symbol: "foo".into(), role: SymbolRole::Definition, line: 1 },
-            Occurrence { symbol: "foo".into(), role: SymbolRole::Reference, line: 10 },
+            Occurrence {
+                symbol: "foo".into(),
+                role: SymbolRole::Definition,
+                line: 1,
+            },
+            Occurrence {
+                symbol: "foo".into(),
+                role: SymbolRole::Reference,
+                line: 10,
+            },
         ],
     };
     let overlay = ScipOverlay::from_documents(&[doc]);
-    let refs: Vec<_> = overlay.edges().iter()
+    let refs: Vec<_> = overlay
+        .edges()
+        .iter()
         .filter(|e| e.relation == Relation::References)
         .collect();
-    assert_eq!(refs.len(), 1, "One reference should produce one References edge");
+    assert_eq!(
+        refs.len(),
+        1,
+        "One reference should produce one References edge"
+    );
 }
 
 #[test]
@@ -30,8 +44,16 @@ fn scip_confidence_is_one() {
     let doc = ScipDocument {
         relative_path: "lib.rs".into(),
         occurrences: vec![
-            Occurrence { symbol: "bar".into(), role: SymbolRole::Definition, line: 5 },
-            Occurrence { symbol: "bar".into(), role: SymbolRole::Reference, line: 20 },
+            Occurrence {
+                symbol: "bar".into(),
+                role: SymbolRole::Definition,
+                line: 5,
+            },
+            Occurrence {
+                symbol: "bar".into(),
+                role: SymbolRole::Reference,
+                line: 20,
+            },
         ],
     };
     let overlay = ScipOverlay::from_documents(&[doc]);

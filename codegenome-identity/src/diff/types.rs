@@ -25,9 +25,7 @@ pub struct OwnedHunk {
     pub old_lines: u32,
 }
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DiffStatus {
     Added,
     Modified,

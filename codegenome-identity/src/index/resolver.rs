@@ -14,10 +14,7 @@ pub struct ResolvedEdges {
 }
 
 /// Resolve semantic edges from parsed files and source bytes.
-pub fn resolve(
-    parsed: &[ParsedFile],
-    files: &[(std::path::PathBuf, Vec<u8>)],
-) -> ResolvedEdges {
+pub fn resolve(parsed: &[ParsedFile], files: &[(std::path::PathBuf, Vec<u8>)]) -> ResolvedEdges {
     let provenance = Provenance {
         source: Source::Inferred,
         actor: "heuristic-resolver".into(),
@@ -36,17 +33,22 @@ pub fn resolve(
         };
         let file_addr = file_address(path);
         resolve_uses(
-            &tree, source, file_addr, &symbol_table,
-            &provenance, &mut edges,
-        );
-        resolve_calls(
-            &tree, source, &symbol_table, &span_index,
-            &provenance, &mut edges,
-        );
-        resolve_impls(
-            &tree, source, &symbol_table, &provenance,
+            &tree,
+            source,
+            file_addr,
+            &symbol_table,
+            &provenance,
             &mut edges,
         );
+        resolve_calls(
+            &tree,
+            source,
+            &symbol_table,
+            &span_index,
+            &provenance,
+            &mut edges,
+        );
+        resolve_impls(&tree, source, &symbol_table, &provenance, &mut edges);
     }
 
     ResolvedEdges { edges }
@@ -55,12 +57,12 @@ pub fn resolve(
 type SymbolTable = HashMap<String, UorAddress>;
 type SpanIndex = HashMap<(u32, u32), UorAddress>;
 
-fn build_symbol_table(
-    files: &[(std::path::PathBuf, Vec<u8>)],
-) -> SymbolTable {
+fn build_symbol_table(files: &[(std::path::PathBuf, Vec<u8>)]) -> SymbolTable {
     let mut table = HashMap::new();
     for (_, source) in files {
-        let Some(tree) = parse_file(source) else { continue };
+        let Some(tree) = parse_file(source) else {
+            continue;
+        };
         let root = tree.root_node();
         let mut cursor = root.walk();
         for child in root.children(&mut cursor) {
@@ -117,9 +119,7 @@ fn resolve_calls(
         let Some(&callee) = symbols.get(&site.callee_name) else {
             continue;
         };
-        let Some(caller_addr) =
-            find_enclosing_symbol(&site.caller_span, spans)
-        else {
+        let Some(caller_addr) = find_enclosing_symbol(&site.caller_span, spans) else {
             continue;
         };
         edges.push(Edge {
@@ -166,20 +166,19 @@ fn find_enclosing_symbol(
     fn_span: &crate::graph::node::Span,
     spans: &SpanIndex,
 ) -> Option<UorAddress> {
-    spans
-        .get(&(fn_span.start_line, fn_span.end_line))
-        .copied()
+    spans.get(&(fn_span.start_line, fn_span.end_line)).copied()
 }
 
 const SYMBOL_KINDS: &[&str] = &[
-    "function_item", "struct_item", "enum_item",
-    "impl_item", "mod_item", "trait_item",
+    "function_item",
+    "struct_item",
+    "enum_item",
+    "impl_item",
+    "mod_item",
+    "trait_item",
 ];
 
-fn symbol_node_name(
-    node: &tree_sitter::Node,
-    source: &[u8],
-) -> Option<String> {
+fn symbol_node_name(node: &tree_sitter::Node, source: &[u8]) -> Option<String> {
     if !SYMBOL_KINDS.contains(&node.kind()) {
         return None;
     }

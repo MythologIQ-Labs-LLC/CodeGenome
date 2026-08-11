@@ -11,9 +11,7 @@ pub fn beliefs_about(
 ) -> Vec<(Node, Vec<Edge>)> {
     let belief_addrs: Vec<UorAddress> = edges
         .iter()
-        .filter(|e| {
-            e.relation == Relation::AboutSubject && e.target == subject
-        })
+        .filter(|e| e.relation == Relation::AboutSubject && e.target == subject)
         .map(|e| e.source)
         .collect();
 
@@ -21,11 +19,7 @@ pub fn beliefs_about(
         .iter()
         .filter_map(|&addr| {
             let node = nodes.iter().find(|n| n.address == addr)?;
-            let related: Vec<Edge> = edges
-                .iter()
-                .filter(|e| e.source == addr)
-                .cloned()
-                .collect();
+            let related: Vec<Edge> = edges.iter().filter(|e| e.source == addr).cloned().collect();
             Some((node.clone(), related))
         })
         .collect()
@@ -35,35 +29,25 @@ pub fn beliefs_about(
 pub fn beliefs_by_actor(actor: &str, nodes: &[Node]) -> Vec<Node> {
     nodes
         .iter()
-        .filter(|n| {
-            n.kind == NodeKind::Belief && n.provenance.actor == actor
-        })
+        .filter(|n| n.kind == NodeKind::Belief && n.provenance.actor == actor)
         .cloned()
         .collect()
 }
 
 /// Find supporting evidence addresses for a belief.
-pub fn supporting_evidence(
-    belief: UorAddress, edges: &[Edge],
-) -> Vec<UorAddress> {
+pub fn supporting_evidence(belief: UorAddress, edges: &[Edge]) -> Vec<UorAddress> {
     edges
         .iter()
-        .filter(|e| {
-            e.source == belief && e.relation == Relation::Supports
-        })
+        .filter(|e| e.source == belief && e.relation == Relation::Supports)
         .map(|e| e.target)
         .collect()
 }
 
 /// Find contradicting evidence addresses for a belief.
-pub fn contradicting_evidence(
-    belief: UorAddress, edges: &[Edge],
-) -> Vec<UorAddress> {
+pub fn contradicting_evidence(belief: UorAddress, edges: &[Edge]) -> Vec<UorAddress> {
     edges
         .iter()
-        .filter(|e| {
-            e.source == belief && e.relation == Relation::Contradicts
-        })
+        .filter(|e| e.source == belief && e.relation == Relation::Contradicts)
         .map(|e| e.target)
         .collect()
 }

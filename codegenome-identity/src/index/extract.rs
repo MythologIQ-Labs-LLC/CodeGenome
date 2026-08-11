@@ -5,8 +5,7 @@
 // the language-neutral IR types (ImportRef, CallRef, ImplRef).
 
 pub use crate::lang::ir::{
-    node_span, CallRef as CallSite, ImportRef as UseTarget,
-    ImplRef as ImplTarget,
+    node_span, CallRef as CallSite, ImplRef as ImplTarget, ImportRef as UseTarget,
 };
 
 // Re-export extraction functions from the Rust backend.
@@ -14,10 +13,7 @@ pub use crate::lang::ir::{
 use crate::lang::rust::RustLanguage;
 use crate::lang::LanguageSupport;
 
-pub fn extract_use_targets(
-    source: &[u8],
-    tree: &tree_sitter::Tree,
-) -> Vec<UseTarget> {
+pub fn extract_use_targets(source: &[u8], tree: &tree_sitter::Tree) -> Vec<UseTarget> {
     RustLanguage
         .extract_imports(source, tree)
         .into_iter()
@@ -28,16 +24,10 @@ pub fn extract_use_targets(
         .collect()
 }
 
-pub fn extract_call_sites(
-    source: &[u8],
-    tree: &tree_sitter::Tree,
-) -> Vec<CallSite> {
+pub fn extract_call_sites(source: &[u8], tree: &tree_sitter::Tree) -> Vec<CallSite> {
     RustLanguage.extract_calls(source, tree)
 }
 
-pub fn extract_impl_targets(
-    source: &[u8],
-    tree: &tree_sitter::Tree,
-) -> Vec<ImplTarget> {
+pub fn extract_impl_targets(source: &[u8], tree: &tree_sitter::Tree) -> Vec<ImplTarget> {
     RustLanguage.extract_impls(source, tree)
 }

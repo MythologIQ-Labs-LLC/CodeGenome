@@ -17,8 +17,7 @@ pub fn detect_language(path: &Path) -> Option<&'static str> {
 pub fn group_by_language(
     files: &[(PathBuf, Vec<u8>)],
 ) -> HashMap<&'static str, Vec<(PathBuf, Vec<u8>)>> {
-    let mut groups: HashMap<&'static str, Vec<(PathBuf, Vec<u8>)>> =
-        HashMap::new();
+    let mut groups: HashMap<&'static str, Vec<(PathBuf, Vec<u8>)>> = HashMap::new();
     for (path, content) in files {
         if let Some(lang) = detect_language(path) {
             groups

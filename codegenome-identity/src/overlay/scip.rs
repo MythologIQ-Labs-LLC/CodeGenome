@@ -12,10 +12,18 @@ pub struct ScipOverlay {
 }
 
 impl Overlay for ScipOverlay {
-    fn kind(&self) -> OverlayKind { OverlayKind::Semantic }
-    fn nodes(&self) -> &[Node] { &self.nodes }
-    fn edges(&self) -> &[Edge] { &self.edges }
-    fn ground_truth(&self) -> GroundTruthLevel { GroundTruthLevel::Available }
+    fn kind(&self) -> OverlayKind {
+        OverlayKind::Semantic
+    }
+    fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+    fn edges(&self) -> &[Edge] {
+        &self.edges
+    }
+    fn ground_truth(&self) -> GroundTruthLevel {
+        GroundTruthLevel::Available
+    }
 }
 
 /// Minimal SCIP index structures (subset of the full protobuf schema).
@@ -63,7 +71,10 @@ impl ScipOverlay {
             build_doc_edges(doc, &prov, &mut edges);
         }
 
-        Ok(Self { nodes: Vec::new(), edges })
+        Ok(Self {
+            nodes: Vec::new(),
+            edges,
+        })
     }
 
     /// Build from pre-parsed documents (for testing).
@@ -78,17 +89,15 @@ impl ScipOverlay {
         for doc in docs {
             build_doc_edges(doc, &prov, &mut edges);
         }
-        Self { nodes: Vec::new(), edges }
+        Self {
+            nodes: Vec::new(),
+            edges,
+        }
     }
 }
 
-fn build_doc_edges(
-    doc: &types::ScipDocument,
-    prov: &Provenance,
-    edges: &mut Vec<Edge>,
-) {
-    let mut defs: std::collections::HashMap<String, UorAddress> =
-        std::collections::HashMap::new();
+fn build_doc_edges(doc: &types::ScipDocument, prov: &Provenance, edges: &mut Vec<Edge>) {
+    let mut defs: std::collections::HashMap<String, UorAddress> = std::collections::HashMap::new();
 
     // First pass: collect definitions
     for occ in &doc.occurrences {
@@ -102,9 +111,8 @@ fn build_doc_edges(
     for occ in &doc.occurrences {
         if occ.role == types::SymbolRole::Reference {
             if let Some(&def_addr) = defs.get(&occ.symbol) {
-                let ref_addr = address_of(
-                    format!("scip-ref:{}:{}", doc.relative_path, occ.line).as_bytes(),
-                );
+                let ref_addr =
+                    address_of(format!("scip-ref:{}:{}", doc.relative_path, occ.line).as_bytes());
                 edges.push(Edge {
                     source: ref_addr,
                     target: def_addr,
@@ -148,15 +156,19 @@ impl From<JsonScipDoc> for types::ScipDocument {
     fn from(d: JsonScipDoc) -> Self {
         Self {
             relative_path: d.relative_path,
-            occurrences: d.occurrences.into_iter().map(|o| types::Occurrence {
-                symbol: o.symbol,
-                role: if o.role == "definition" {
-                    types::SymbolRole::Definition
-                } else {
-                    types::SymbolRole::Reference
-                },
-                line: o.line,
-            }).collect(),
+            occurrences: d
+                .occurrences
+                .into_iter()
+                .map(|o| types::Occurrence {
+                    symbol: o.symbol,
+                    role: if o.role == "definition" {
+                        types::SymbolRole::Definition
+                    } else {
+                        types::SymbolRole::Reference
+                    },
+                    line: o.line,
+                })
+                .collect(),
         }
     }
 }

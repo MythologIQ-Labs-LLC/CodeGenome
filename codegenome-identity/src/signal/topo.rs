@@ -24,9 +24,7 @@ fn build_adjacency(
     for overlay in overlays {
         for edge in overlay.edges() {
             let (from, to) = match direction {
-                Direction::Downstream | Direction::Both => {
-                    (edge.source, edge.target)
-                }
+                Direction::Downstream | Direction::Both => (edge.source, edge.target),
                 Direction::Upstream => (edge.target, edge.source),
             };
             adj.entry(from).or_default().push(to);

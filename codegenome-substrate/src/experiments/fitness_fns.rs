@@ -6,10 +6,7 @@ use codegenome_identity::graph::node::NodeKind;
 use codegenome_identity::graph::overlay::Overlay;
 
 /// Average max propagation depth from sampled symbols, normalized.
-pub fn propagation_depth(
-    source_dir: &Path,
-    params: &ExperimentParams,
-) -> f64 {
+pub fn propagation_depth(source_dir: &Path, params: &ExperimentParams) -> f64 {
     let Some(fused) = build_overlays(source_dir) else {
         return 0.0;
     };
@@ -39,19 +36,13 @@ pub fn propagation_depth(
 }
 
 /// Parse-propagate cycle time as fitness. Faster = higher.
-pub fn cycle_time(
-    source_dir: &Path,
-    params: &ExperimentParams,
-) -> f64 {
+pub fn cycle_time(source_dir: &Path, params: &ExperimentParams) -> f64 {
     let start = std::time::Instant::now();
     let Some(fused) = build_overlays(source_dir) else {
         return 0.0;
     };
     let overlays: Vec<&dyn Overlay> = vec![&fused];
-    let file_node = fused
-        .nodes()
-        .iter()
-        .find(|n| n.kind == NodeKind::File);
+    let file_node = fused.nodes().iter().find(|n| n.kind == NodeKind::File);
     if let Some(node) = file_node {
         let threshold = param_or(params, "confidence_threshold", 0.5);
         let atten = param_or(params, "attenuation_factor", 0.8);
@@ -62,10 +53,7 @@ pub fn cycle_time(
 }
 
 /// Edge-to-node ratio in fused overlay.
-pub fn graph_density(
-    source_dir: &Path,
-    _params: &ExperimentParams,
-) -> f64 {
+pub fn graph_density(source_dir: &Path, _params: &ExperimentParams) -> f64 {
     let Some(fused) = build_overlays(source_dir) else {
         return 0.0;
     };

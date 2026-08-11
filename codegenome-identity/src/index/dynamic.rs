@@ -17,8 +17,7 @@ pub fn ingest_trace(
     trace_path: &Path,
     files: &[(PathBuf, Vec<u8>)],
 ) -> Result<TraceResult, String> {
-    let file =
-        std::fs::File::open(trace_path).map_err(|e| e.to_string())?;
+    let file = std::fs::File::open(trace_path).map_err(|e| e.to_string())?;
     let reader = BufReader::new(file);
     let names = build_name_index(files);
     let prov = Provenance {
@@ -65,12 +64,12 @@ fn parse_trace_line(
     })
 }
 
-fn build_name_index(
-    files: &[(PathBuf, Vec<u8>)],
-) -> HashMap<String, UorAddress> {
+fn build_name_index(files: &[(PathBuf, Vec<u8>)]) -> HashMap<String, UorAddress> {
     let mut index = HashMap::new();
     for (_, source) in files {
-        let Some(tree) = parse_file(source) else { continue };
+        let Some(tree) = parse_file(source) else {
+            continue;
+        };
         let root = tree.root_node();
         let mut cursor = root.walk();
         for child in root.children(&mut cursor) {
@@ -78,12 +77,8 @@ fn build_name_index(
                 .child_by_field_name("name")
                 .and_then(|n| n.utf8_text(source).ok())
             {
-                let content =
-                    format!("{}:{}", child.kind(), name);
-                index.insert(
-                    name.to_string(),
-                    address_of(content.as_bytes()),
-                );
+                let content = format!("{}:{}", child.kind(), name);
+                index.insert(name.to_string(), address_of(content.as_bytes()));
             }
         }
     }

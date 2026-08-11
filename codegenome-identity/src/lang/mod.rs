@@ -19,24 +19,12 @@ pub trait LanguageSupport: Send + Sync {
     fn extensions(&self) -> &[&str];
     fn language(&self) -> tree_sitter::Language;
 
-    fn extract_symbols(
-        &self, source: &[u8], tree: &tree_sitter::Tree,
-    ) -> Vec<SymbolDef>;
-    fn extract_imports(
-        &self, source: &[u8], tree: &tree_sitter::Tree,
-    ) -> Vec<ImportRef>;
-    fn extract_calls(
-        &self, source: &[u8], tree: &tree_sitter::Tree,
-    ) -> Vec<CallRef>;
-    fn extract_impls(
-        &self, source: &[u8], tree: &tree_sitter::Tree,
-    ) -> Vec<ImplRef>;
-    fn extract_control_flow(
-        &self, source: &[u8], tree: &tree_sitter::Tree,
-    ) -> Vec<CfEdge>;
-    fn extract_data_flow(
-        &self, source: &[u8], tree: &tree_sitter::Tree,
-    ) -> Vec<DfEdge>;
+    fn extract_symbols(&self, source: &[u8], tree: &tree_sitter::Tree) -> Vec<SymbolDef>;
+    fn extract_imports(&self, source: &[u8], tree: &tree_sitter::Tree) -> Vec<ImportRef>;
+    fn extract_calls(&self, source: &[u8], tree: &tree_sitter::Tree) -> Vec<CallRef>;
+    fn extract_impls(&self, source: &[u8], tree: &tree_sitter::Tree) -> Vec<ImplRef>;
+    fn extract_control_flow(&self, source: &[u8], tree: &tree_sitter::Tree) -> Vec<CfEdge>;
+    fn extract_data_flow(&self, source: &[u8], tree: &tree_sitter::Tree) -> Vec<DfEdge>;
 }
 
 /// All built-in language backends.

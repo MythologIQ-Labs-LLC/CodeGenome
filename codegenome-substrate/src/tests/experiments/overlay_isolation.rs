@@ -10,9 +10,15 @@ struct MockSemanticOverlay {
 }
 
 impl Overlay for MockSemanticOverlay {
-    fn kind(&self) -> OverlayKind { OverlayKind::Semantic }
-    fn nodes(&self) -> &[Node] { &self.nodes }
-    fn edges(&self) -> &[Edge] { &self.edges }
+    fn kind(&self) -> OverlayKind {
+        OverlayKind::Semantic
+    }
+    fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+    fn edges(&self) -> &[Edge] {
+        &self.edges
+    }
     fn ground_truth(&self) -> codegenome_identity::measurement::GroundTruthLevel {
         codegenome_identity::measurement::GroundTruthLevel::Constructible
     }
@@ -21,8 +27,11 @@ impl Overlay for MockSemanticOverlay {
 /// OQ4: Adding a second overlay does not change the first.
 #[test]
 fn adding_semantic_overlay_does_not_change_syntax() {
-    let digest_path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../codegenome-identity"))
-        .join("src/identity/digest.rs");
+    let digest_path = PathBuf::from(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../codegenome-identity"
+    ))
+    .join("src/identity/digest.rs");
     let source = std::fs::read(&digest_path).unwrap();
     let syntax = parse_rust_files(&[(digest_path, source)]);
 

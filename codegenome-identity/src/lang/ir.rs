@@ -75,13 +75,14 @@ pub struct DfEdge {
 }
 
 /// Construct a SymbolDef with canonical fields auto-populated.
-pub fn make_symbol(
-    name: String, kind: SymbolKind, span: Span, source_kind: String,
-) -> SymbolDef {
+pub fn make_symbol(name: String, kind: SymbolKind, span: Span, source_kind: String) -> SymbolDef {
     let ck = crate::lang::canonical::canonicalize(&kind, &source_kind);
     let na = crate::lang::canonical::normalized_address(&ck, &name);
     SymbolDef {
-        name, kind, span, source_kind,
+        name,
+        kind,
+        span,
+        source_kind,
         canonical_kind: ck,
         normalized_address: na,
     }

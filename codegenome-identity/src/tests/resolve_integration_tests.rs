@@ -1,4 +1,3 @@
-
 use crate::graph::query::Query;
 use crate::graph::resolve::FileIndex;
 use crate::graph::traversal;
@@ -28,9 +27,7 @@ fn end_to_end_index_resolve_traverse() {
     // Load overlay
     let store = OnDiskStore::new(&store_dir);
     let (nodes, edges) = store
-        .read_overlay(&crate::graph::overlay::OverlayKind::Custom(
-            "fused".into(),
-        ))
+        .read_overlay(&crate::graph::overlay::OverlayKind::Custom("fused".into()))
         .unwrap()
         .unwrap();
 

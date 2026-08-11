@@ -22,9 +22,7 @@ pub struct FederatedQueryContext {
 }
 
 impl FederatedQueryContext {
-    pub fn from_workspace(
-        graph: &WorkspaceGraph, cfg: &WorkspaceConfig,
-    ) -> Self {
+    pub fn from_workspace(graph: &WorkspaceGraph, cfg: &WorkspaceConfig) -> Self {
         let mut nodes = graph.aggregate_nodes.clone();
         let mut all_edges: Vec<Edge> = graph.federated_edges.clone();
         all_edges.extend(graph.symbol_edges.iter().cloned());
@@ -51,15 +49,16 @@ impl FederatedQueryContext {
                 .push((e.source, e.confidence, e.relation.clone()));
         }
 
-        Self { nodes, fwd, rev, all_edges }
+        Self {
+            nodes,
+            fwd,
+            rev,
+            all_edges,
+        }
     }
 
     /// Build from pre-loaded data (for testing without disk I/O).
-    pub fn from_parts(
-        nodes: Vec<Node>,
-        local_edges: Vec<Edge>,
-        cross_edges: Vec<Edge>,
-    ) -> Self {
+    pub fn from_parts(nodes: Vec<Node>, local_edges: Vec<Edge>, cross_edges: Vec<Edge>) -> Self {
         let mut all_edges = local_edges;
         all_edges.extend(cross_edges);
 
@@ -74,7 +73,12 @@ impl FederatedQueryContext {
                 .push((e.source, e.confidence, e.relation.clone()));
         }
 
-        Self { nodes, fwd, rev, all_edges }
+        Self {
+            nodes,
+            fwd,
+            rev,
+            all_edges,
+        }
     }
 }
 
@@ -100,7 +104,11 @@ impl QueryContext for FederatedQueryContext {
                 return filter(combined, relation_filter, min_confidence);
             }
         };
-        filter(raw.cloned().unwrap_or_default(), relation_filter, min_confidence)
+        filter(
+            raw.cloned().unwrap_or_default(),
+            relation_filter,
+            min_confidence,
+        )
     }
 
     fn node(&self, addr: UorAddress) -> Option<Node> {
@@ -132,8 +140,7 @@ fn filter(
     entries
         .into_iter()
         .filter(|(_, conf, rel)| {
-            *conf >= min_confidence
-                && relation_filter.as_ref().is_none_or(|f| f.contains(rel))
+            *conf >= min_confidence && relation_filter.as_ref().is_none_or(|f| f.contains(rel))
         })
         .collect()
 }

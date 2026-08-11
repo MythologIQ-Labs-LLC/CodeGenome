@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// How available is ground truth for a given property?
-#[derive(
-    Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum GroundTruthLevel {
     /// Oracle exists (e.g., Tree-sitter AST for syntax).
     Available,
@@ -14,9 +12,7 @@ pub enum GroundTruthLevel {
 }
 
 /// How does failure manifest?
-#[derive(
-    Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FailureMode {
     /// Wrong but undetectable without oracle.
     Silent,

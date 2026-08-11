@@ -30,10 +30,7 @@ pub enum TypedOperation {
 }
 
 /// Compute the chain hash for an entry.
-pub fn compute_chain_hash(
-    content_hash: UorAddress,
-    previous_hash: UorAddress,
-) -> UorAddress {
+pub fn compute_chain_hash(content_hash: UorAddress, previous_hash: UorAddress) -> UorAddress {
     let combined = format!("{content_hash:?}{previous_hash:?}");
     address_of(combined.as_bytes())
 }

@@ -5,16 +5,10 @@ use crate::tools::CodegenomeTools;
 
 fn test_tools() -> CodegenomeTools {
     let store = std::env::temp_dir().join("codegenome-dispatch-tests");
-    CodegenomeTools::new(
-        ".".to_string(),
-        store.to_string_lossy().into_owned(),
-    )
+    CodegenomeTools::new(".".to_string(), store.to_string_lossy().into_owned())
 }
 
-fn request(
-    name: &'static str,
-    arguments: Option<serde_json::Value>,
-) -> CallToolRequestParams {
+fn request(name: &'static str, arguments: Option<serde_json::Value>) -> CallToolRequestParams {
     CallToolRequestParams {
         meta: None,
         name: name.into(),
@@ -54,7 +48,6 @@ fn missing_required_args_return_error() {
 fn unknown_tool_returns_error() {
     let tools = test_tools();
     let req = request("codegenome_nonexistent", Some(serde_json::json!({})));
-    let err = dispatch_tool(&tools, &req)
-        .expect_err("unknown tool must yield an error");
+    let err = dispatch_tool(&tools, &req).expect_err("unknown tool must yield an error");
     assert!(err.message.contains("unknown tool"));
 }

@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use crate::lang::detect::group_by_language;
-use crate::lang::all_languages;
 use crate::index::parser::parse_files_multi;
+use crate::lang::all_languages;
+use crate::lang::detect::group_by_language;
 
 #[test]
 fn mixed_language_files_produce_nodes_from_all() {
@@ -26,8 +26,7 @@ fn mixed_language_files_produce_nodes_from_all() {
     let parsed = parse_files_multi(&groups, &languages);
     assert_eq!(parsed.len(), 3, "Expected 3 parsed files");
 
-    let total_nodes: usize =
-        parsed.iter().map(|p| p.nodes.len()).sum();
+    let total_nodes: usize = parsed.iter().map(|p| p.nodes.len()).sum();
     // Each file produces at least 1 file node + symbol nodes
     assert!(
         total_nodes >= 3,

@@ -14,10 +14,7 @@ pub trait StoreBackend: Send + Sync {
         edges: &[Edge],
     ) -> Result<(), String>;
 
-    fn read_overlay(
-        &self,
-        kind: &OverlayKind,
-    ) -> Result<Option<OverlayData>, String>;
+    fn read_overlay(&self, kind: &OverlayKind) -> Result<Option<OverlayData>, String>;
 
     fn list_overlays(&self) -> Result<Vec<OverlayKind>, String>;
 }

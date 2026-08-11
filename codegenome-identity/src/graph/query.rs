@@ -15,9 +15,7 @@ pub struct Query {
     pub relation_filter: Option<Vec<Relation>>,
 }
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Direction {
     Upstream,
     Downstream,

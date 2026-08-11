@@ -27,15 +27,9 @@ fn impact_propagation_from_diff() {
 
     // Create a diff touching line 5 of some file
     let first_file = &files[0].0;
-    let diff = make_diff_touching_line(
-        &first_file.to_string_lossy(),
-        5,
-    );
+    let diff = make_diff_touching_line(&first_file.to_string_lossy(), 5);
 
-    let changeset = detect_changes(
-        &diff,
-        &[&overlay as &dyn Overlay],
-    );
+    let changeset = detect_changes(&diff, &[&overlay as &dyn Overlay]);
 
     // Impact map should be non-empty if any symbol spans line 5
     if !changeset.changed_nodes.is_empty() {
@@ -49,10 +43,7 @@ fn empty_diff_produces_empty_changeset() {
     let overlay = parse_rust_files(&files);
 
     let diff = OwnedDiff { files: vec![] };
-    let changeset = detect_changes(
-        &diff,
-        &[&overlay as &dyn Overlay],
-    );
+    let changeset = detect_changes(&diff, &[&overlay as &dyn Overlay]);
 
     assert!(changeset.changed_nodes.is_empty());
     assert!(changeset.impact.is_empty());

@@ -1,8 +1,7 @@
-
+use crate::graph::overlay::Overlay;
 use crate::graph::resolve::FileIndex;
 use crate::index::parser::parse_files;
 use crate::overlay::syntax::SyntaxOverlay;
-use crate::graph::overlay::Overlay;
 
 fn build_index(code: &[(&str, &str)]) -> (FileIndex, SyntaxOverlay) {
     let dir = std::env::temp_dir().join("cg_resolve_test");
@@ -33,9 +32,7 @@ fn resolve_known_file_and_line() {
 
 #[test]
 fn suffix_match_works() {
-    let (index, _) = build_index(&[
-        ("lib.rs", "fn foo() {}"),
-    ]);
+    let (index, _) = build_index(&[("lib.rs", "fn foo() {}")]);
     // The file is stored as temp_dir/cg_resolve_test/lib.rs
     // but we query with just "lib.rs"
     let addr = index.resolve("lib.rs", 1);
@@ -44,18 +41,14 @@ fn suffix_match_works() {
 
 #[test]
 fn unknown_file_returns_none() {
-    let (index, _) = build_index(&[
-        ("a.rs", "fn alpha() {}"),
-    ]);
+    let (index, _) = build_index(&[("a.rs", "fn alpha() {}")]);
     let addr = index.resolve("nonexistent.rs", 1);
     assert!(addr.is_none());
 }
 
 #[test]
 fn line_outside_span_returns_none() {
-    let (index, _) = build_index(&[
-        ("a.rs", "fn alpha() {}"),
-    ]);
+    let (index, _) = build_index(&[("a.rs", "fn alpha() {}")]);
     // alpha is at line 1, line 999 doesn't exist
     let addr = index.resolve("a.rs", 999);
     assert!(addr.is_none());

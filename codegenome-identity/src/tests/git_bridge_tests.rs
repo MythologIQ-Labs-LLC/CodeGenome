@@ -18,15 +18,8 @@ fn init_repo(dir: &Path) {
     let tree_id = index.write_tree().unwrap();
     let tree = repo.find_tree(tree_id).unwrap();
     let sig = repo.signature().unwrap();
-    repo.commit(
-        Some("HEAD"),
-        &sig,
-        &sig,
-        "initial",
-        &tree,
-        &[],
-    )
-    .unwrap();
+    repo.commit(Some("HEAD"), &sig, &sig, "initial", &tree, &[])
+        .unwrap();
 }
 
 #[test]
@@ -72,11 +65,7 @@ fn hunk_lines_match_modification() {
     init_repo(&dir);
 
     // Modify line 1
-    std::fs::write(
-        dir.join("main.rs"),
-        "fn main() { /* changed */ }\n",
-    )
-    .unwrap();
+    std::fs::write(dir.join("main.rs"), "fn main() { /* changed */ }\n").unwrap();
 
     let diff = git_diff(&dir, None, None).unwrap();
     let _ = std::fs::remove_dir_all(&dir);

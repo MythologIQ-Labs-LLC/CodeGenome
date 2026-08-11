@@ -27,42 +27,28 @@ impl ServerHandler for CodegenomeTools {
         &self,
         _request: Option<PaginatedRequestParams>,
         _context: RequestContext<RoleServer>,
-    ) -> impl Future<Output = Result<ListToolsResult, McpError>>
-           + Send
-           + '_ {
+    ) -> impl Future<Output = Result<ListToolsResult, McpError>> + Send + '_ {
         let tools = vec![
             typed_tool::<ContextInput>(
                 "codegenome_context",
                 "Retrieve context around a symbol via graph traversal",
             ),
-            typed_tool::<ImpactInput>(
-                "codegenome_impact",
-                "Blast radius from a symbol change",
-            ),
+            typed_tool::<ImpactInput>("codegenome_impact", "Blast radius from a symbol change"),
             typed_tool::<DetectInput>(
                 "codegenome_detect_changes",
                 "Map git diff to affected symbols and impact",
             ),
-            typed_tool::<TraceInput>(
-                "codegenome_trace",
-                "Trace call chain from entrypoint",
-            ),
+            typed_tool::<TraceInput>("codegenome_trace", "Trace call chain from entrypoint"),
             typed_tool::<ReindexInput>(
                 "codegenome_reindex",
                 "Write-gated re-index of source files",
             ),
-            typed_tool::<StatusInput>(
-                "codegenome_status",
-                "Index status and freshness report",
-            ),
+            typed_tool::<StatusInput>("codegenome_status", "Index status and freshness report"),
             typed_tool::<ExperimentStartInput>(
                 "codegenome_experiment_start",
                 "Start async experiment loop",
             ),
-            typed_tool::<StatusInput>(
-                "codegenome_experiment_status",
-                "Poll experiment progress",
-            ),
+            typed_tool::<StatusInput>("codegenome_experiment_status", "Poll experiment progress"),
             typed_tool::<ExperimentResultsInput>(
                 "codegenome_experiment_results",
                 "Read last N experiment results",
@@ -87,9 +73,7 @@ impl ServerHandler for CodegenomeTools {
         &self,
         request: CallToolRequestParams,
         _context: RequestContext<RoleServer>,
-    ) -> impl Future<Output = Result<CallToolResult, McpError>>
-           + Send
-           + '_ {
+    ) -> impl Future<Output = Result<CallToolResult, McpError>> + Send + '_ {
         let result = dispatch_tool(self, &request);
         std::future::ready(result)
     }
@@ -126,26 +110,21 @@ pub(crate) fn dispatch_tool(
         }
         "codegenome_experiment_start" => {
             let input: ExperimentStartInput = deser(req)?;
-            tools.experiment_start(
-                &input.source_dir,
-                input.max_iterations as u64,
-            )
+            tools.experiment_start(&input.source_dir, input.max_iterations as u64)
         }
-        "codegenome_experiment_status" => {
-            tools.experiment_status()
-        }
+        "codegenome_experiment_status" => tools.experiment_status(),
         "codegenome_experiment_results" => {
             let input: ExperimentResultsInput = deser(req)?;
-            let n = if input.last_n == 0 { 10 } else { input.last_n as usize };
+            let n = if input.last_n == 0 {
+                10
+            } else {
+                input.last_n as usize
+            };
             tools.experiment_results(n)
         }
         "codegenome_workspace_trace" => {
             let input: WorkspaceTraceInput = deser(req)?;
-            tools.workspace_trace(
-                &input.workspace_dir,
-                &input.from_repo,
-                &input.to_repo,
-            )
+            tools.workspace_trace(&input.workspace_dir, &input.from_repo, &input.to_repo)
         }
         "codegenome_assert" => {
             let input: AssertInput = deser(req)?;
@@ -161,9 +140,7 @@ pub(crate) fn dispatch_tool(
     Ok(CallToolResult::success(vec![Content::text(text)]))
 }
 
-fn deser<T: serde::de::DeserializeOwned>(
-    req: &CallToolRequestParams,
-) -> Result<T, McpError> {
+fn deser<T: serde::de::DeserializeOwned>(req: &CallToolRequestParams) -> Result<T, McpError> {
     let args = req
         .arguments
         .as_ref()
@@ -177,20 +154,14 @@ fn deser<T: serde::de::DeserializeOwned>(
     })
 }
 
-fn arg_str(
-    args: Option<&serde_json::Map<String, serde_json::Value>>,
-    key: &str,
-) -> String {
+fn arg_str(args: Option<&serde_json::Map<String, serde_json::Value>>, key: &str) -> String {
     args.and_then(|a| a.get(key))
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string()
 }
 
-fn typed_tool<T: JsonSchema>(
-    name: &'static str,
-    desc: &'static str,
-) -> Tool {
+fn typed_tool<T: JsonSchema>(name: &'static str, desc: &'static str) -> Tool {
     let schema = schemars::schema_for!(T);
     let schema_map = match serde_json::to_value(schema) {
         Ok(serde_json::Value::Object(m)) => m,

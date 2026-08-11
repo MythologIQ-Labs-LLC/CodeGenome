@@ -79,8 +79,5 @@ impl Greet for Bot {
         .iter()
         .filter(|e| e.relation == Relation::Implements)
         .collect();
-    assert!(
-        !impls.is_empty(),
-        "Expected at least one Implements edge"
-    );
+    assert!(!impls.is_empty(), "Expected at least one Implements edge");
 }

@@ -2,9 +2,7 @@ use crate::graph::edge::{Edge, Relation};
 use crate::graph::node::Node;
 
 /// Export nodes and edges to Cytoscape.js elements JSON.
-pub fn to_cytoscape_json(
-    nodes: &[Node], edges: &[Edge],
-) -> serde_json::Value {
+pub fn to_cytoscape_json(nodes: &[Node], edges: &[Edge]) -> serde_json::Value {
     to_cytoscape_filtered(nodes, edges, 0.0, None)
 }
 
@@ -32,9 +30,7 @@ pub fn to_cytoscape_filtered(
     let cy_edges: Vec<serde_json::Value> = edges
         .iter()
         .filter(|e| {
-            e.confidence >= min_confidence
-                && relations
-                    .is_none_or(|r| r.contains(&e.relation))
+            e.confidence >= min_confidence && relations.is_none_or(|r| r.contains(&e.relation))
         })
         .map(|e| {
             serde_json::json!({

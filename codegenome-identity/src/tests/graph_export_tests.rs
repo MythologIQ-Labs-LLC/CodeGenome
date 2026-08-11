@@ -10,17 +10,22 @@ fn addr(name: &str) -> crate::identity::UorAddress {
 fn node(name: &str) -> Node {
     let a = addr(name);
     Node {
-        address: a, kind: NodeKind::Symbol,
+        address: a,
+        kind: NodeKind::Symbol,
         provenance: Provenance::tool("test", Timestamp(0)),
-        confidence: 1.0, created_at: Timestamp(0),
-        content_hash: a, span: None,
+        confidence: 1.0,
+        created_at: Timestamp(0),
+        content_hash: a,
+        span: None,
     }
 }
 
 fn edge(src: &str, tgt: &str, conf: f64) -> Edge {
     Edge {
-        source: addr(src), target: addr(tgt),
-        relation: Relation::Calls, confidence: conf,
+        source: addr(src),
+        target: addr(tgt),
+        relation: Relation::Calls,
+        confidence: conf,
         provenance: Provenance::tool("test", Timestamp(0)),
         evidence: vec![],
     }

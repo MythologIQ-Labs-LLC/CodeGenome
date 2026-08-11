@@ -1,7 +1,5 @@
 use crate::graph::edge::{Edge, Relation};
-use crate::graph::node::{
-    Node, NodeKind, Provenance, Timestamp,
-};
+use crate::graph::node::{Node, NodeKind, Provenance, Timestamp};
 use crate::graph::query::{Direction, Query};
 use crate::graph::query_context::LocalQueryContext;
 use crate::graph::traversal::execute;
@@ -24,12 +22,7 @@ fn make_node(name: &str) -> Node {
     }
 }
 
-fn make_edge(
-    src: &str,
-    tgt: &str,
-    conf: f64,
-    rel: Relation,
-) -> Edge {
+fn make_edge(src: &str, tgt: &str, conf: f64, rel: Relation) -> Edge {
     Edge {
         source: addr(src),
         target: addr(tgt),
@@ -132,9 +125,10 @@ fn relation_filter_excludes_non_matching() {
 
     // Only Calls edges: A→B. C not reachable via Calls.
     assert_eq!(result.nodes.len(), 2);
-    assert!(result.nodes.iter().all(|n| {
-        n.address == addr("A") || n.address == addr("B")
-    }));
+    assert!(result
+        .nodes
+        .iter()
+        .all(|n| { n.address == addr("A") || n.address == addr("B") }));
 }
 
 #[test]

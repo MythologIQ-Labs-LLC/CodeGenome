@@ -16,9 +16,7 @@ pub struct Edge {
     pub evidence: Vec<UorAddress>,
 }
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Relation {
     Contains,
     Calls,

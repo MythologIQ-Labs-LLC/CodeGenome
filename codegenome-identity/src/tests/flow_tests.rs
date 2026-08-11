@@ -20,7 +20,10 @@ fn sequential_statements_produce_control_flow() {
         .iter()
         .filter(|e| e.relation == Relation::ControlFlow)
         .collect();
-    assert!(!cf.is_empty(), "Sequential statements should produce ControlFlow edges");
+    assert!(
+        !cf.is_empty(),
+        "Sequential statements should produce ControlFlow edges"
+    );
 }
 
 #[test]
@@ -41,7 +44,11 @@ fn f() {
         .filter(|e| e.relation == Relation::ControlFlow)
         .collect();
     // if-else produces at least: entry→if, if→then, if→else
-    assert!(cf.len() >= 2, "If-else should produce branch edges, got {}", cf.len());
+    assert!(
+        cf.len() >= 2,
+        "If-else should produce branch edges, got {}",
+        cf.len()
+    );
 }
 
 #[test]
@@ -79,7 +86,11 @@ fn f(x: i32) {
         .iter()
         .filter(|e| e.relation == Relation::ControlFlow)
         .collect();
-    assert!(cf.len() >= 2, "Match arms should produce branch edges, got {}", cf.len());
+    assert!(
+        cf.len() >= 2,
+        "Match arms should produce branch edges, got {}",
+        cf.len()
+    );
 }
 
 #[test]
@@ -96,7 +107,10 @@ fn f() {
         .iter()
         .filter(|e| e.relation == Relation::DataFlow)
         .collect();
-    assert!(!df.is_empty(), "Let binding with use should produce DataFlow edge");
+    assert!(
+        !df.is_empty(),
+        "Let binding with use should produce DataFlow edge"
+    );
 }
 
 #[test]

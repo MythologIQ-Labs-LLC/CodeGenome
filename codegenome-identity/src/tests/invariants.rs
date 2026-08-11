@@ -187,16 +187,36 @@ proptest! {
 
 #[test]
 fn span_equality() {
-    let a = Span { start_byte: 0, end_byte: 10, start_line: 1, end_line: 1 };
-    let b = Span { start_byte: 0, end_byte: 10, start_line: 1, end_line: 1 };
-    let c = Span { start_byte: 5, end_byte: 15, start_line: 2, end_line: 3 };
+    let a = Span {
+        start_byte: 0,
+        end_byte: 10,
+        start_line: 1,
+        end_line: 1,
+    };
+    let b = Span {
+        start_byte: 0,
+        end_byte: 10,
+        start_line: 1,
+        end_line: 1,
+    };
+    let c = Span {
+        start_byte: 5,
+        end_byte: 15,
+        start_line: 2,
+        end_line: 3,
+    };
     assert_eq!(a, b);
     assert_ne!(a, c);
 }
 
 #[test]
 fn node_with_span_roundtrip() {
-    let span = Span { start_byte: 10, end_byte: 50, start_line: 3, end_line: 7 };
+    let span = Span {
+        start_byte: 10,
+        end_byte: 50,
+        start_line: 3,
+        end_line: 7,
+    };
     let node = sample_node_with_span(b"fn example()", span);
     let encoded = bincode::serialize(&node).unwrap();
     let decoded: Node = bincode::deserialize(&encoded).unwrap();
