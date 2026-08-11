@@ -1,6 +1,4 @@
-use std::borrow::Cow;
 use std::future::Future;
-use std::sync::Arc;
 
 use crate::tools::inputs::*;
 use crate::tools::CodegenomeTools;
@@ -65,19 +63,17 @@ impl ServerHandler for CodegenomeTools {
                 "Write-gated: assert a belief about a code artifact",
             ),
         ];
-        std::future::ready(Ok(ListToolsResult {
-            tools,
-            next_cursor: None,
-            meta: None,
-        }))
+        std::future::ready(Ok(ListToolsResult::with_all_items(tools)
+            .with_ttl_ms(3_600_000)
+            .with_cache_scope(CacheScope::Public)))
     }
 
     fn call_tool(
         &self,
         request: CallToolRequestParams,
         _context: RequestContext<RoleServer>,
-    ) -> impl Future<Output = Result<CallToolResult, McpError>> + Send + '_ {
-        let result = dispatch_tool(self, &request);
+    ) -> impl Future<Output = Result<CallToolResponse, McpError>> + Send + '_ {
+        let result = dispatch_tool(self, &request).map(Into::into);
         std::future::ready(result)
     }
 }
@@ -140,7 +136,7 @@ pub(crate) fn dispatch_tool(
             ))
         }
     };
-    Ok(CallToolResult::success(vec![Content::text(text)]))
+    Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
 }
 
 fn deser<T: serde::de::DeserializeOwned>(req: &CallToolRequestParams) -> Result<T, McpError> {
@@ -163,15 +159,5 @@ fn typed_tool<T: JsonSchema>(name: &'static str, desc: &'static str) -> Tool {
         Ok(serde_json::Value::Object(m)) => m,
         _ => serde_json::Map::new(),
     };
-    Tool {
-        name: Cow::Borrowed(name),
-        description: Some(Cow::Borrowed(desc)),
-        input_schema: Arc::new(schema_map),
-        title: None,
-        output_schema: None,
-        annotations: None,
-        execution: None,
-        icons: None,
-        meta: None,
-    }
+    Tool::new(name, desc, schema_map)
 }

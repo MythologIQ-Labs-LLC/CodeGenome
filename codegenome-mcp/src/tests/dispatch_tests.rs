@@ -9,15 +9,12 @@ fn test_tools() -> CodegenomeTools {
 }
 
 fn request(name: &'static str, arguments: Option<serde_json::Value>) -> CallToolRequestParams {
-    CallToolRequestParams {
-        meta: None,
-        name: name.into(),
-        arguments: arguments.and_then(|v| match v {
-            serde_json::Value::Object(m) => Some(m),
-            _ => None,
-        }),
-        task: None,
-    }
+    let mut req = CallToolRequestParams::new(name);
+    req.arguments = arguments.and_then(|v| match v {
+        serde_json::Value::Object(m) => Some(m),
+        _ => None,
+    });
+    req
 }
 
 #[test]

@@ -2,20 +2,40 @@ use schemars::schema_for;
 
 use crate::tools::inputs::*;
 
+/// schemars 1.x exposes schemas as JSON values; assert on the
+/// serialized form, which is also exactly what MCP clients see.
+fn required_fields(schema: &schemars::Schema) -> Vec<String> {
+    let value = serde_json::to_value(schema).unwrap();
+    value["required"]
+        .as_array()
+        .map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 #[test]
 fn context_input_schema_valid() {
     let schema = schema_for!(ContextInput);
-    let obj = schema.schema.object.as_ref().unwrap();
-    assert!(obj.required.contains("file"), "file should be required");
-    assert!(obj.required.contains("line"), "line should be required");
+    let required = required_fields(&schema);
+    assert!(
+        required.contains(&"file".to_string()),
+        "file should be required"
+    );
+    assert!(
+        required.contains(&"line".to_string()),
+        "line should be required"
+    );
 }
 
 #[test]
 fn impact_input_schema_valid() {
     let schema = schema_for!(ImpactInput);
-    let obj = schema.schema.object.as_ref().unwrap();
-    assert!(obj.required.contains("file"));
-    assert!(obj.required.contains("line"));
+    let required = required_fields(&schema);
+    assert!(required.contains(&"file".to_string()));
+    assert!(required.contains(&"line".to_string()));
 }
 
 #[test]
