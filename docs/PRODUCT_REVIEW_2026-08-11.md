@@ -92,6 +92,7 @@ Note: no artifact named "EvolvAI" exists in the repo; "self-evolving" refers to 
   - **#4** "Add scoped Agent Memory doctrine backlink" — clean, mergeable, CodeQL passed. Ready to merge.
   - **#3** quinn-proto 0.11.14→0.11.16 (security-relevant), **#2** serde_with 3.18→3.21, **#1** git2 0.19→0.20.4 — Dependabot PRs aged 2–7 weeks with **no meaningful checks** (CodeQL neutral or absent). #1 is a semver-major bump. None should merge until CI exists to validate them; with CI in place all three validate automatically.
 - **CI gates: none exist.** Only dynamic Dependabot/CodeQL workflows. This is the root cause of the stale PR queue.
+- **Security: GitHub reports 6 open Dependabot vulnerabilities on `main` (2 high, 1 moderate, 3 low)** — see the repository's Dependabot alerts page. The three open Dependabot PRs address only part of this; triaging the full alert list belongs in Phase 1 alongside CI.
 
 ---
 
