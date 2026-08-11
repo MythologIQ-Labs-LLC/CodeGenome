@@ -18,7 +18,7 @@ rayon = "1"
 toml = "0.8"
 prost = "0.13"
 lsp-types = "0.97"
-rand = "0.9"
+rand = "0.10"
 
 [dev-dependencies]
 proptest = "1"
