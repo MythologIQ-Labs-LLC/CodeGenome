@@ -6,11 +6,14 @@ use crate::index::resolver::resolve;
 
 const SOURCE: &str = "pub fn entry() { helper(); }\nfn helper() {}\n";
 
-fn fixture() -> (
-    Vec<(PathBuf, Vec<u8>)>,
+type SourceFiles = Vec<(PathBuf, Vec<u8>)>;
+type Fixture = (
+    SourceFiles,
     Vec<crate::graph::node::Node>,
     Vec<crate::graph::edge::Edge>,
-) {
+);
+
+fn fixture() -> Fixture {
     let files = vec![(PathBuf::from("src/lib.rs"), SOURCE.as_bytes().to_vec())];
     let parsed = parse_files(&files);
     let resolved = resolve(&parsed, &files);

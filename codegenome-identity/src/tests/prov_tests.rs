@@ -23,7 +23,7 @@ fn node(kind: NodeKind, source: Source, actor: &str) -> Node {
 #[test]
 fn nodes_become_entities_with_generation_and_attribution() {
     let n = node(NodeKind::Symbol, Source::ToolOutput, "tree-sitter-rust");
-    let doc = to_prov_json(&[n.clone()], &[]);
+    let doc = to_prov_json(std::slice::from_ref(&n), &[]);
 
     let entity_id = format!("cg:node:{}", n.address);
     assert!(doc["entity"][&entity_id].is_object(), "entity present");
@@ -75,7 +75,7 @@ fn edges_become_claim_entities_with_confidence_and_evidence() {
 #[test]
 fn belief_nodes_are_labelled_ai_generated() {
     let n = node(NodeKind::Belief, Source::UserStated, "claude-code");
-    let doc = to_prov_json(&[n.clone()], &[]);
+    let doc = to_prov_json(std::slice::from_ref(&n), &[]);
     let entity_id = format!("cg:node:{}", n.address);
     assert_eq!(doc["entity"][&entity_id]["cg:aiGenerated"], true);
     // user-asserted beliefs attribute to a person, not software
@@ -88,7 +88,7 @@ fn belief_nodes_are_labelled_ai_generated() {
 #[test]
 fn compiler_grade_facts_are_not_labelled_ai_generated() {
     let n = node(NodeKind::File, Source::ToolOutput, "tree-sitter-rust");
-    let doc = to_prov_json(&[n.clone()], &[]);
+    let doc = to_prov_json(std::slice::from_ref(&n), &[]);
     let entity_id = format!("cg:node:{}", n.address);
     assert!(doc["entity"][&entity_id].get("cg:aiGenerated").is_none());
 }
