@@ -62,7 +62,15 @@ pub struct TraceInput {
 }
 
 #[derive(Deserialize, JsonSchema)]
-pub struct StatusInput {}
+pub struct StatusInput {
+    /// Source directory to check freshness against (default: the
+    /// directory the server was started with)
+    #[serde(default)]
+    pub source_dir: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct ExperimentStatusInput {}
 
 #[derive(Deserialize, JsonSchema)]
 pub struct ExperimentStartInput {

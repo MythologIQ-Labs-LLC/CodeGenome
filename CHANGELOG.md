@@ -24,8 +24,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the pro
 - Live experiment run state (`experiments.tsv`, `experiment_log.txt`, `experiments.checkpoint.json`, ~44 MB) untracked and gitignored; deliberate research archives remain in `data/runs/`. Historical blobs remain in git history (an LFS/history rewrite was deliberately not performed).
 - The three VETOed `docs/plan-*.md` blueprints carry superseded banners and are retained as historical record.
 
+## [Unreleased] — Phase 2: core-thesis correctness
+
+### Fixed
+- **Symbol identity is now file-scoped** (`sym:{path}:{kind}:{name}`). Previously `blake3(kind:name)` merged every same-named symbol across the codebase into one node. The formula existed as five divergent inline copies (graph builder, both resolvers, process overlay, runtime-trace overlay, federation export table); all now call the single shared `symbol_address`. Same-file same-kind same-name collisions remain a known limitation.
+- **Rust extraction is recursive**: `impl` methods, items in inline `mod` blocks, and nested functions are extracted as symbols; calls inside methods produce call edges (the call graph was previously empty for idiomatic Rust); call attribution picks the innermost enclosing function.
+- **All languages contribute syntax symbols**: `parse_one` delegated to the language backends instead of hardcoded Rust node kinds, so TypeScript/Python files now produce symbol nodes (previously zero) and `ParsedFile` provenance names the real backend.
+- **Experiment engine**: `SWITCH_FITNESS` now takes effect (the hill-climb evaluates the loop's current fitness function, with best-score re-baselining on switch); result status is computed (Fail on numeric divergence, Inconclusive when nothing was measurable) instead of hardcoded `Pass`; fitness builds overlays through the multi-language pipeline instead of the Rust-only legacy path.
+- **Source collection excludes** hidden dirs, `target/`, `node_modules/`, `__pycache__/`, `venv/`, `vendor/` (both the indexer and the experiment engine's file walk).
+- MCP: response provenance derives the toolchain label from registered backends (TS/Python results were labelled "tree-sitter-rust"); `codegenome_status` schema now declares the `source_dir` field it reads; `codegenome_experiment_status` has its own input type.
+
+### Added
+- Regression tests: recursive extraction (impl methods, inline modules, nested-fn attribution, in-function imports), cross-file address distinctness, CLI arg-tree validation + parse tests for all 11 subcommands + index→status round-trip (the CLI crate previously had zero tests).
+
 ### Known issues (tracked in docs/PRODUCT_REVIEW_2026-08-11.md)
-- Symbol addresses omit file/module path (name collisions merge distinct symbols).
-- Rust language backend does not recurse below top-level items (`impl` methods produce no call edges).
-- Experiment engine: `SWITCH_FITNESS` inert, status hardcoded `Pass`, fitness observes Rust files only.
-- rmcp 0.16 predates the stateless MCP 2026-07-28 spec (current SDK: 3.x); tree-sitter 0.24 vs current 0.26.
+- rmcp 0.16 predates the stateless MCP 2026-07-28 spec (current SDK: 3.x) and carries RUSTSEC-2026-0189 (DNS rebinding in the HTTP transport — not compiled into this stdio-only server); tree-sitter 0.24 vs current 0.26; bincode 1.x unmaintained. All Phase 3.
+- LSP overlay remains a stub; experiment state over MCP is in-process only and the LLM advisor is CLI-only.

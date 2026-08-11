@@ -168,24 +168,6 @@ fn find_enclosing_symbol(
     spans.get(&(fn_span.start_line, fn_span.end_line)).copied()
 }
 
-const SYMBOL_KINDS: &[&str] = &[
-    "function_item",
-    "struct_item",
-    "enum_item",
-    "impl_item",
-    "mod_item",
-    "trait_item",
-];
-
-fn symbol_node_name(node: &tree_sitter::Node, source: &[u8]) -> Option<String> {
-    if !SYMBOL_KINDS.contains(&node.kind()) {
-        return None;
-    }
-    node.child_by_field_name("name")
-        .and_then(|n| n.utf8_text(source).ok())
-        .map(String::from)
-}
-
 fn parse_file(source: &[u8]) -> Option<tree_sitter::Tree> {
     let mut parser = tree_sitter::Parser::new();
     parser

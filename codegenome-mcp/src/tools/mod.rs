@@ -90,14 +90,20 @@ impl CodegenomeTools {
         Some(StoredOverlay { nodes, edges })
     }
 
-    /// Build provenance metadata for tool responses.
+    /// Build provenance metadata for tool responses. The toolchain
+    /// string is derived from the registered language backends rather
+    /// than hardcoded, so provenance stays truthful as backends change.
     pub fn response_meta(&self) -> serde_json::Value {
         let freshness =
             codegenome_identity::store::meta::check_freshness(&self.store_dir, &self.source_dir);
+        let langs: Vec<String> = codegenome_identity::lang::all_languages()
+            .iter()
+            .map(|l| l.name().to_string())
+            .collect();
         serde_json::json!({
             "source_fresh": freshness.is_fresh,
             "last_indexed": freshness.last_indexed,
-            "toolchain": "tree-sitter-rust + heuristic-resolver",
+            "toolchain": format!("tree-sitter({}) + heuristic-resolver", langs.join(",")),
         })
     }
 }

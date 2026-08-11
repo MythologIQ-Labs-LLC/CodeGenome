@@ -18,12 +18,23 @@ pub fn run_experiment(
     let stab = fitness::stability(&infra.source_dir, params);
     let elapsed = start.elapsed();
 
+    // Fail: numeric divergence (the documented attenuation > ~1.7 NaN
+    // boundary). Inconclusive: nothing measurable — empty graph, no
+    // sampled symbols, or degenerate params that reach zero nodes.
+    let status = if !accuracy.is_finite() || !stab.is_finite() {
+        ExperimentStatus::Fail
+    } else if accuracy == 0.0 {
+        ExperimentStatus::Inconclusive
+    } else {
+        ExperimentStatus::Pass
+    };
+
     ExperimentResult {
         iteration: 0,
         params: params.values.clone(),
         fitness: accuracy,
         stability: stab,
-        status: ExperimentStatus::Pass,
+        status,
         cycle_time_ms: elapsed.as_millis() as u64,
         description: format_params(params),
         chain_hash: String::new(),
@@ -31,15 +42,18 @@ pub fn run_experiment(
 }
 
 /// Hill-climbing: perturb params, run, keep if better.
+/// Evaluates with the loop's *current* fitness function so a
+/// SWITCH_FITNESS action actually changes what is optimized.
 pub fn hill_climb_step(
     infra: &ExperimentInfra,
     current: &ExperimentParams,
+    fitness_fn: &FitnessFunction,
     current_fitness: f64,
     current_stability: f64,
     perturbation_scale: f64,
 ) -> (ExperimentParams, ExperimentResult, bool) {
     let perturbed = perturb(current, perturbation_scale);
-    let result = run_experiment(infra, &perturbed, &infra.fitness_fn);
+    let result = run_experiment(infra, &perturbed, fitness_fn);
     let dominated = result.fitness > current_fitness;
     let pareto =
         (result.fitness - current_fitness).abs() < 0.0001 && result.stability > current_stability;
@@ -148,6 +162,7 @@ fn run_iteration(infra: &ExperimentInfra, state: &mut LoopState, i: u64, log_pat
     let (perturbed, mut result, kept) = hill_climb_step(
         infra,
         &state.params,
+        &state.fitness_fn,
         state.best_fitness,
         state.best_stability,
         state.scale,
@@ -169,6 +184,13 @@ fn run_iteration(infra: &ExperimentInfra, state: &mut LoopState, i: u64, log_pat
     );
     state.scale = new_scale;
     if let Some(ff) = new_ff {
+        if ff != state.fitness_fn {
+            // Scores from different fitness functions are not
+            // comparable; re-baseline so the next iteration under the
+            // new function is accepted as the fresh best.
+            state.best_fitness = 0.0;
+            state.best_stability = 0.0;
+        }
         state.fitness_fn = ff;
     }
 

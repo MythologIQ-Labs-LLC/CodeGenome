@@ -30,8 +30,14 @@ fn hill_climb_step_keeps_or_discards() {
     let params = ExperimentParams::default();
     let baseline = runner::run_experiment(&infra, &params, &infra.fitness_fn);
 
-    let (_, result, _kept) =
-        runner::hill_climb_step(&infra, &params, baseline.fitness, baseline.stability, 0.1);
+    let (_, result, _kept) = runner::hill_climb_step(
+        &infra,
+        &params,
+        &infra.fitness_fn,
+        baseline.fitness,
+        baseline.stability,
+        0.1,
+    );
     assert!(result.fitness.is_finite());
 }
 

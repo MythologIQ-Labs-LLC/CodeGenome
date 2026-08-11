@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::graph::edge::{Edge, Relation};
 use crate::graph::node::{Provenance, Source, Timestamp};
-use crate::identity::{address_of, UorAddress};
+use crate::identity::UorAddress;
 
 /// Result of runtime trace ingestion.
 pub struct TraceResult {

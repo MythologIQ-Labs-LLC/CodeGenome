@@ -177,7 +177,12 @@ fn parse_with_cache_multi(
     parsed
 }
 
-fn collect_source_files(dir: &Path) -> Vec<(PathBuf, Vec<u8>)> {
+/// Recursively collect all supported source files, skipping excluded
+/// directories (hidden, target/, node_modules/, __pycache__/, venv/,
+/// vendor/). Public so callers outside the pipeline (e.g. the
+/// experiment engine's fitness functions) collect the same file set
+/// the indexer sees.
+pub fn collect_source_files(dir: &Path) -> Vec<(PathBuf, Vec<u8>)> {
     let supported = crate::lang::detect::supported_extensions();
     let mut files = Vec::new();
     let Ok(entries) = std::fs::read_dir(dir) else {

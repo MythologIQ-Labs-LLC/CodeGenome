@@ -8,7 +8,7 @@ use codegenome_identity::identity::UorAddress;
 use codegenome_identity::overlay::flow::FlowOverlay;
 use codegenome_identity::overlay::fused::{self, FusedOverlay};
 use codegenome_identity::overlay::semantic::SemanticOverlay;
-use codegenome_identity::overlay::syntax::parse_rust_files;
+use codegenome_identity::overlay::syntax::SyntaxOverlay;
 
 pub use crate::experiments::fitness_fns;
 
@@ -106,14 +106,23 @@ pub fn stability(source_dir: &Path, params: &ExperimentParams) -> f64 {
 }
 
 /// Build all three overlays and fuse into one. Returns None if empty.
+/// Uses the multi-language pipeline: the fitness signal observes every
+/// supported language, not only Rust, so the engine optimizes against
+/// the same graph the indexer produces.
 pub(crate) fn build_overlays(source_dir: &Path) -> Option<FusedOverlay> {
-    let files = collect_rs_files(source_dir);
+    let files = codegenome_identity::index::orchestrator::collect_source_files(source_dir);
     if files.is_empty() {
         return None;
     }
-    let syntax = parse_rust_files(&files);
-    let semantic = SemanticOverlay::from_syntax(&syntax, &files);
-    let flow = FlowOverlay::from_source(&files);
+    let languages = codegenome_identity::lang::all_languages();
+    let groups = codegenome_identity::lang::detect::group_by_language(&files);
+    let parsed = codegenome_identity::index::parser::parse_files_multi(&groups, &languages);
+    let syntax = SyntaxOverlay::from_parsed(&parsed);
+    let resolved =
+        codegenome_identity::index::resolver_multi::resolve_multi(&parsed, &groups, &languages);
+    let semantic = SemanticOverlay::from_resolved(&resolved);
+    let flow_result = codegenome_identity::index::flow::extract_flow_multi(&groups, &languages);
+    let flow = FlowOverlay::from_flow_result(&flow_result);
     Some(fused::fuse(&[&syntax, &semantic, &flow]))
 }
 

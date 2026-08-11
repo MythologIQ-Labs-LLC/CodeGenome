@@ -48,7 +48,10 @@ impl ServerHandler for CodegenomeTools {
                 "codegenome_experiment_start",
                 "Start async experiment loop",
             ),
-            typed_tool::<StatusInput>("codegenome_experiment_status", "Poll experiment progress"),
+            typed_tool::<ExperimentStatusInput>(
+                "codegenome_experiment_status",
+                "Poll experiment progress",
+            ),
             typed_tool::<ExperimentResultsInput>(
                 "codegenome_experiment_results",
                 "Read last N experiment results",
@@ -105,8 +108,8 @@ pub(crate) fn dispatch_tool(
             tools.reindex(&input)
         }
         "codegenome_status" => {
-            let src = arg_str(req.arguments.as_ref(), "source_dir");
-            tools.status_report(&src)
+            let input: StatusInput = deser(req)?;
+            tools.status_report(&input.source_dir)
         }
         "codegenome_experiment_start" => {
             let input: ExperimentStartInput = deser(req)?;
@@ -152,13 +155,6 @@ fn deser<T: serde::de::DeserializeOwned>(req: &CallToolRequestParams) -> Result<
             None,
         )
     })
-}
-
-fn arg_str(args: Option<&serde_json::Map<String, serde_json::Value>>, key: &str) -> String {
-    args.and_then(|a| a.get(key))
-        .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .to_string()
 }
 
 fn typed_tool<T: JsonSchema>(name: &'static str, desc: &'static str) -> Tool {
