@@ -18,13 +18,17 @@ pub fn build_export_table(
     if parser.set_language(&lang.language()).is_err() {
         return table;
     }
-    for (_, source) in files {
+    for (path, source) in files {
         let Some(tree) = parser.parse(source.as_slice(), None) else {
             continue;
         };
         for sym in lang.extract_symbols(source, &tree) {
-            let content = format!("{}:{}", sym.source_kind, sym.name);
-            table.insert(sym.name, address_of(content.as_bytes()));
+            let addr = codegenome_identity::lang::graph_builder::symbol_address(
+                path,
+                &sym.source_kind,
+                &sym.name,
+            );
+            table.insert(sym.name, addr);
         }
     }
     table

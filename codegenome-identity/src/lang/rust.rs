@@ -54,80 +54,92 @@ const SYMBOL_KINDS: &[&str] = &[
 
 fn extract_rust_symbols(source: &[u8], tree: &tree_sitter::Tree) -> Vec<SymbolDef> {
     let mut symbols = Vec::new();
-    let root = tree.root_node();
-    let mut cursor = root.walk();
-    for child in root.children(&mut cursor) {
-        if !SYMBOL_KINDS.contains(&child.kind()) {
-            continue;
-        }
-        let name = child
-            .child_by_field_name("name")
-            .and_then(|n| n.utf8_text(source).ok())
-            .unwrap_or(child.kind())
-            .to_string();
-        let kind = match child.kind() {
-            "function_item" => SymbolKind::Function,
-            "struct_item" => SymbolKind::Class,
-            "enum_item" => SymbolKind::Enum,
-            "trait_item" => SymbolKind::Trait,
-            "mod_item" => SymbolKind::Module,
-            other => SymbolKind::Other(other.into()),
-        };
-        symbols.push(make_symbol(
-            name,
-            kind,
-            node_span(&child),
-            child.kind().to_string(),
-        ));
-    }
+    walk_rust_symbols(&tree.root_node(), source, &mut symbols);
     symbols
+}
+
+fn walk_rust_symbols(node: &tree_sitter::Node, source: &[u8], symbols: &mut Vec<SymbolDef>) {
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        if SYMBOL_KINDS.contains(&child.kind()) {
+            let name = child
+                .child_by_field_name("name")
+                .and_then(|n| n.utf8_text(source).ok())
+                .unwrap_or(child.kind())
+                .to_string();
+            let kind = match child.kind() {
+                "function_item" => SymbolKind::Function,
+                "struct_item" => SymbolKind::Class,
+                "enum_item" => SymbolKind::Enum,
+                "trait_item" => SymbolKind::Trait,
+                "mod_item" => SymbolKind::Module,
+                other => SymbolKind::Other(other.into()),
+            };
+            symbols.push(make_symbol(
+                name,
+                kind,
+                node_span(&child),
+                child.kind().to_string(),
+            ));
+        }
+        walk_rust_symbols(&child, source, symbols);
+    }
 }
 
 fn extract_rust_imports(source: &[u8], tree: &tree_sitter::Tree) -> Vec<ImportRef> {
     let mut imports = Vec::new();
-    let root = tree.root_node();
-    let mut cursor = root.walk();
-    for child in root.children(&mut cursor) {
-        if child.kind() != "use_declaration" {
-            continue;
-        }
-        if let Some(name) = use_leaf_name(&child, source) {
-            imports.push(ImportRef {
-                imported_name: name,
-                span: node_span(&child),
-            });
-        }
-    }
+    walk_rust_imports(&tree.root_node(), source, &mut imports);
     imports
+}
+
+fn walk_rust_imports(node: &tree_sitter::Node, source: &[u8], imports: &mut Vec<ImportRef>) {
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        if child.kind() == "use_declaration" {
+            if let Some(name) = use_leaf_name(&child, source) {
+                imports.push(ImportRef {
+                    imported_name: name,
+                    span: node_span(&child),
+                });
+            }
+        }
+        walk_rust_imports(&child, source, imports);
+    }
 }
 
 fn extract_rust_calls(source: &[u8], tree: &tree_sitter::Tree) -> Vec<CallRef> {
     let mut calls = Vec::new();
-    let root = tree.root_node();
-    let mut cursor = root.walk();
-    for child in root.children(&mut cursor) {
-        if child.kind() != "function_item" {
-            continue;
-        }
-        let fn_span = node_span(&child);
-        collect_calls(&child, source, fn_span, &mut calls);
-    }
+    walk_rust_calls(&tree.root_node(), source, &mut calls);
     calls
+}
+
+fn walk_rust_calls(node: &tree_sitter::Node, source: &[u8], calls: &mut Vec<CallRef>) {
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        if child.kind() == "function_item" {
+            let fn_span = node_span(&child);
+            collect_calls(&child, source, fn_span, calls);
+        }
+        walk_rust_calls(&child, source, calls);
+    }
 }
 
 fn extract_rust_impls(source: &[u8], tree: &tree_sitter::Tree) -> Vec<ImplRef> {
     let mut impls = Vec::new();
-    let root = tree.root_node();
-    let mut cursor = root.walk();
-    for child in root.children(&mut cursor) {
-        if child.kind() != "impl_item" {
-            continue;
-        }
-        if let Some(imp) = parse_impl_item(&child, source) {
-            impls.push(imp);
-        }
-    }
+    walk_rust_impls(&tree.root_node(), source, &mut impls);
     impls
+}
+
+fn walk_rust_impls(node: &tree_sitter::Node, source: &[u8], impls: &mut Vec<ImplRef>) {
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        if child.kind() == "impl_item" {
+            if let Some(imp) = parse_impl_item(&child, source) {
+                impls.push(imp);
+            }
+        }
+        walk_rust_impls(&child, source, impls);
+    }
 }
 
 fn use_leaf_name(node: &tree_sitter::Node, source: &[u8]) -> Option<String> {
@@ -160,6 +172,11 @@ fn collect_calls(node: &tree_sitter::Node, source: &[u8], fn_span: Span, calls: 
     }
     let mut c = node.walk();
     for child in node.children(&mut c) {
+        // Nested function_items are visited by walk_rust_calls; their
+        // calls belong to the innermost function, not this one.
+        if child.kind() == "function_item" {
+            continue;
+        }
         collect_calls(&child, source, fn_span, calls);
     }
 }

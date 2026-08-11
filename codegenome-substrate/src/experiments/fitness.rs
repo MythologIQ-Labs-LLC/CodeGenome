@@ -198,7 +198,13 @@ pub(crate) fn collect_rs_files(dir: &Path) -> Vec<(std::path::PathBuf, Vec<u8>)>
     for entry in entries.flatten() {
         let path = entry.path();
         if path.is_dir() {
-            files.extend(collect_rs_files(&path));
+            let excluded = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(codegenome_identity::lang::detect::is_excluded_dir);
+            if !excluded {
+                files.extend(collect_rs_files(&path));
+            }
         } else if path.extension().is_some_and(|e| e == "rs") {
             if let Ok(content) = std::fs::read(&path) {
                 files.push((path, content));

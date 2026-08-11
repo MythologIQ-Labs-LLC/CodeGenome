@@ -186,7 +186,13 @@ fn collect_source_files(dir: &Path) -> Vec<(PathBuf, Vec<u8>)> {
     for entry in entries.flatten() {
         let path = entry.path();
         if path.is_dir() {
-            files.extend(collect_source_files(&path));
+            let excluded = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(crate::lang::detect::is_excluded_dir);
+            if !excluded {
+                files.extend(collect_source_files(&path));
+            }
         } else if path
             .extension()
             .and_then(|e| e.to_str())

@@ -118,23 +118,18 @@ fn build_name_index(
     syntax: &SyntaxOverlay,
     files: &[(PathBuf, Vec<u8>)],
 ) -> HashMap<String, UorAddress> {
+    use crate::lang::LanguageSupport;
+    let backend = crate::lang::rust::RustLanguage;
     let mut index = HashMap::new();
-    for (_, source) in files {
+    for (path, source) in files {
         let Some(tree) = parse_file(source) else {
             continue;
         };
-        let root = tree.root_node();
-        let mut cursor = root.walk();
-        for child in root.children(&mut cursor) {
-            if let Some(name) = child
-                .child_by_field_name("name")
-                .and_then(|n| n.utf8_text(source).ok())
-            {
-                let content = format!("{}:{}", child.kind(), name);
-                let addr = address_of(content.as_bytes());
-                if syntax.nodes().iter().any(|n| n.address == addr) {
-                    index.insert(name.to_string(), addr);
-                }
+        for sym in backend.extract_symbols(source, &tree) {
+            let addr =
+                crate::lang::graph_builder::symbol_address(path, &sym.source_kind, &sym.name);
+            if syntax.nodes().iter().any(|n| n.address == addr) {
+                index.insert(sym.name.clone(), addr);
             }
         }
     }

@@ -58,18 +58,17 @@ type SymbolTable = HashMap<String, UorAddress>;
 type SpanIndex = HashMap<(u32, u32), UorAddress>;
 
 fn build_symbol_table(files: &[(std::path::PathBuf, Vec<u8>)]) -> SymbolTable {
+    use crate::lang::LanguageSupport;
+    let backend = crate::lang::rust::RustLanguage;
     let mut table = HashMap::new();
-    for (_, source) in files {
+    for (path, source) in files {
         let Some(tree) = parse_file(source) else {
             continue;
         };
-        let root = tree.root_node();
-        let mut cursor = root.walk();
-        for child in root.children(&mut cursor) {
-            if let Some(name) = symbol_node_name(&child, source) {
-                let content = format!("{}:{}", child.kind(), name);
-                table.insert(name, address_of(content.as_bytes()));
-            }
+        for sym in backend.extract_symbols(source, &tree) {
+            let addr =
+                crate::lang::graph_builder::symbol_address(path, &sym.source_kind, &sym.name);
+            table.insert(sym.name, addr);
         }
     }
     table

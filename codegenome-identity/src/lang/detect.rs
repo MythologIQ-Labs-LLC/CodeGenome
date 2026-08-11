@@ -33,3 +33,14 @@ pub fn group_by_language(
 pub fn supported_extensions() -> &'static [&'static str] {
     &["rs", "ts", "tsx", "py"]
 }
+
+/// Directories that must never be walked during source collection:
+/// hidden directories (VCS, editor state) and vendored/generated trees
+/// whose contents would pollute the graph with third-party symbols.
+pub fn is_excluded_dir(dir_name: &str) -> bool {
+    dir_name.starts_with('.')
+        || matches!(
+            dir_name,
+            "target" | "node_modules" | "__pycache__" | "venv" | "vendor"
+        )
+}

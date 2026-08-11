@@ -133,13 +133,14 @@ fn build_symbol_table(
         if parser.set_language(&backend.language()).is_err() {
             continue;
         }
-        for (_, source) in files {
+        for (path, source) in files {
             let Some(tree) = parser.parse(source.as_slice(), None) else {
                 continue;
             };
             for sym in backend.extract_symbols(source, &tree) {
-                let content = format!("{}:{}", sym.source_kind, sym.name);
-                table.insert(sym.name, address_of(content.as_bytes()));
+                let addr =
+                    crate::lang::graph_builder::symbol_address(path, &sym.source_kind, &sym.name);
+                table.insert(sym.name, addr);
             }
         }
     }
