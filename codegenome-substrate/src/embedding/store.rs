@@ -44,7 +44,7 @@ pub fn persist_embeddings(
     store: &codegenome_identity::store::ondisk::OnDiskStore,
     entries: &[EmbeddingEntry],
 ) -> Result<(), String> {
-    let data = bincode::serialize(entries).map_err(|e| e.to_string())?;
+    let data = codegenome_identity::codec::to_vec(entries).map_err(|e| e.to_string())?;
     let path = store.base_dir().join("embeddings.bin");
     std::fs::write(&path, data).map_err(|e| e.to_string())
 }
@@ -58,7 +58,7 @@ pub fn load_embeddings(
         return Ok(Vec::new());
     }
     let data = std::fs::read(&path).map_err(|e| e.to_string())?;
-    bincode::deserialize(&data).map_err(|e| e.to_string())
+    codegenome_identity::codec::from_slice(&data).map_err(|e| e.to_string())
 }
 
 fn now_timestamp() -> Timestamp {

@@ -89,8 +89,8 @@ fn parse_is_deterministic() {
     let a = parse_rust_files(&files);
     let b = parse_rust_files(&files);
 
-    let a_bytes = bincode::serialize(a.nodes()).unwrap();
-    let b_bytes = bincode::serialize(b.nodes()).unwrap();
+    let a_bytes = crate::codec::to_vec(a.nodes()).unwrap();
+    let b_bytes = crate::codec::to_vec(b.nodes()).unwrap();
     assert_eq!(a_bytes, b_bytes, "Parse should be deterministic");
 }
 

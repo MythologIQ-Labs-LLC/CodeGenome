@@ -26,7 +26,7 @@ impl FileCache {
     pub fn get(&self, path: &Path, current_hash: &str) -> Option<CachedEntry> {
         let cache_path = self.cache_path(path);
         let data = std::fs::read(&cache_path).ok()?;
-        let entry: CachedEntry = bincode::deserialize(&data).ok()?;
+        let entry: CachedEntry = crate::codec::from_slice(&data).ok()?;
         if entry.content_hash == current_hash {
             Some(entry)
         } else {
@@ -37,7 +37,7 @@ impl FileCache {
     /// Store a parse result keyed by source file path.
     pub fn put(&self, path: &Path, entry: &CachedEntry) -> Result<(), String> {
         let cache_path = self.cache_path(path);
-        let data = bincode::serialize(entry).map_err(|e| e.to_string())?;
+        let data = crate::codec::to_vec(entry).map_err(|e| e.to_string())?;
         std::fs::write(cache_path, data).map_err(|e| e.to_string())
     }
 

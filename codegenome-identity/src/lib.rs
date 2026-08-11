@@ -1,3 +1,4 @@
+pub mod codec;
 pub mod confidence;
 pub mod diff;
 pub mod evidence;

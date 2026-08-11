@@ -134,8 +134,8 @@ fn parse_with_cache_multi(
         let hash = blake3::hash(source).to_hex()[..16].to_string();
         if let Some(entry) = cache.get(path, &hash) {
             if let (Ok(nodes), Ok(edges)) = (
-                bincode::deserialize(&entry.nodes_bin),
-                bincode::deserialize(&entry.edges_bin),
+                crate::codec::from_slice(&entry.nodes_bin),
+                crate::codec::from_slice(&entry.edges_bin),
             ) {
                 let file_content = format!("file:{}", path.display());
                 parsed.push(parser::ParsedFile {
@@ -166,8 +166,8 @@ fn parse_with_cache_multi(
                 .unwrap_or_default();
             let entry = CachedEntry {
                 content_hash: hash,
-                nodes_bin: bincode::serialize(&pf.nodes).unwrap_or_default(),
-                edges_bin: bincode::serialize(&pf.edges).unwrap_or_default(),
+                nodes_bin: crate::codec::to_vec(&pf.nodes).unwrap_or_default(),
+                edges_bin: crate::codec::to_vec(&pf.edges).unwrap_or_default(),
             };
             let _ = cache.put(&pf.path, &entry);
             parsed.push(pf);

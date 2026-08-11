@@ -35,8 +35,8 @@ fn adding_semantic_overlay_does_not_change_syntax() {
     let source = std::fs::read(&digest_path).unwrap();
     let syntax = parse_rust_files(&[(digest_path, source)]);
 
-    let nodes_before = bincode::serialize(syntax.nodes()).unwrap();
-    let edges_before = bincode::serialize(syntax.edges()).unwrap();
+    let nodes_before = codegenome_identity::codec::to_vec(syntax.nodes()).unwrap();
+    let edges_before = codegenome_identity::codec::to_vec(syntax.edges()).unwrap();
 
     // Create a semantic overlay with import edges
     let _semantic = MockSemanticOverlay {
@@ -60,8 +60,8 @@ fn adding_semantic_overlay_does_not_change_syntax() {
     };
 
     // Syntax overlay unchanged
-    let nodes_after = bincode::serialize(syntax.nodes()).unwrap();
-    let edges_after = bincode::serialize(syntax.edges()).unwrap();
+    let nodes_after = codegenome_identity::codec::to_vec(syntax.nodes()).unwrap();
+    let edges_after = codegenome_identity::codec::to_vec(syntax.edges()).unwrap();
 
     assert_eq!(nodes_before, nodes_after);
     assert_eq!(edges_before, edges_after);

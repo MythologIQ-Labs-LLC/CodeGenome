@@ -10,7 +10,7 @@ description = "Pure identity core for the Unified Code Reality Graph"
 [dependencies]
 blake3 = "1"
 serde = { version = "1", features = ["derive"] }
-bincode = "1"
+postcard = { version = "1", features = ["alloc"] }
 tree-sitter = "0.26"
 tree-sitter-rust = "0.24"
 tree-sitter-typescript = "0.23"

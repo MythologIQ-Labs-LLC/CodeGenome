@@ -38,6 +38,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the pro
 - Regression tests: recursive extraction (impl methods, inline modules, nested-fn attribution, in-function imports), cross-file address distinctness, CLI arg-tree validation + parse tests for all 11 subcommands + index→status round-trip (the CLI crate previously had zero tests).
 - `.cargo/audit.toml`: the CI audit job is now blocking, with RUSTSEC-2026-0189 (rmcp HTTP transport, not compiled into this stdio-only server) as the single documented, time-boxed exception until the Phase 3 rmcp upgrade. A red audit job now always means a new, untriaged advisory.
 
+## [Unreleased] — Phase 3: technology catch-up
+
+### Changed
+- **rmcp 0.16 → 3.1** (MCP spec 2026-07-28): stateless-model SDK, `CallToolResponse`, constructor-based tool registration, and spec-native **cache hints** on the tool list (ttlMs 1h, public scope). Resolves RUSTSEC-2026-0189; the `.cargo/audit.toml` ignore list is now empty.
+- **schemars 0.8 → 1.x** alongside the rmcp port; schema tests assert on the serialized JSON MCP clients actually see.
+- **tree-sitter 0.24 → 0.26.12** (ABI 15) with grammar bumps: tree-sitter-rust 0.24, tree-sitter-python 0.25. All extraction tests pass on the new grammar stack.
+- **git2 0.20 → 0.21** — clears RUSTSEC-2026-0183/0184 (unsound `Remote::list` / `BlameHunk`).
+- **bincode replaced with postcard** via a new one-file `codegenome_identity::codec` module. bincode 1.x is unmaintained (RUSTSEC-2025-0141) and its "3.0.0" release is an explicit tombstone recommending migration; postcard is its suggested serde-native successor. All bincode-encoded state was regenerable local derived state (parse cache, overlay store, embedding store) — old stores fail to decode and rebuild on the next index; no persistent data or identity hashes are affected.
+
 ### Known issues (tracked in docs/PRODUCT_REVIEW_2026-08-11.md)
-- rmcp 0.16 predates the stateless MCP 2026-07-28 spec (current SDK: 3.x) and carries RUSTSEC-2026-0189 (DNS rebinding in the HTTP transport — not compiled into this stdio-only server); tree-sitter 0.24 vs current 0.26; bincode 1.x unmaintained. All Phase 3.
 - LSP overlay remains a stub; experiment state over MCP is in-process only and the LLM advisor is CLI-only.
+- Remaining audit warnings are unmaintained *transitive* deps of mistralrs (fxhash, number_prefix, paste) — upstream's to fix; non-blocking.
+- Edition 2024 migration and MCP structured output (`outputSchema`) / tasks-extension adoption deferred to Phase 4.

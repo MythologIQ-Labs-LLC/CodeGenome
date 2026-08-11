@@ -404,7 +404,7 @@ codegenome serve
 | Package | Purpose |
 |---------|---------|
 | `blake3` | Content-addressed hashing for UOR identity and chain integrity |
-| `serde` + `bincode` + `serde_json` | Serialization for graph store, checkpoints, JSON output |
+| `serde` + `postcard` + `serde_json` | Serialization for graph store, checkpoints, JSON output |
 | `tree-sitter` | Incremental multi-language parsing engine |
 | `tree-sitter-rust` | Rust grammar for syntax overlay |
 | `tree-sitter-typescript` | TypeScript/TSX grammar for syntax overlay |
