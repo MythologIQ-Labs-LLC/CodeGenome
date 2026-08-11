@@ -36,6 +36,7 @@
   - [Key Findings](#key-findings)
   - [Open Research Questions](#open-research-questions)
 - [Governance](#governance)
+- [Agent Memory Alignment](#agent-memory-alignment)
 - [MCP Integration](#mcp-integration)
 - [Project Metrics](#project-metrics)
 - [Dependencies](#dependencies)
@@ -324,6 +325,24 @@ Every graph operation is governed:
 operation = "query"
 condition = "impact_nodes > 10"
 action = "require-approval"
+```
+
+## Agent Memory Alignment
+
+This repository implements the **code reality graph** — content-addressed code artifact identity, evidence and provenance bundles, confidence fusion, and impact traversal — within the [Agent Memory](https://github.com/MythologIQ-Labs-LLC/agent-memory) reference architecture. CODEGENOME supplies domain evidence and graph structure; it does not own general memory lifecycle or authority doctrine.
+
+Canonical doctrine this work maps to:
+
+- [ADR-005 — CodeGenome is the code reality substrate](https://github.com/MythologIQ-Labs-LLC/agent-memory/blob/main/docs/adr/ADR-005-codegenome-is-code-reality-substrate.md)
+- [Source trust is a first-class signal (ADR-009)](https://github.com/MythologIQ-Labs-LLC/agent-memory/blob/main/docs/adr/ADR-009-source-trust-is-a-first-class-signal.md)
+- [Repo implementation map](https://github.com/MythologIQ-Labs-LLC/agent-memory/blob/main/docs/05-repo-implementation-map.md)
+- [Canonical and derived state](https://github.com/MythologIQ-Labs-LLC/agent-memory/blob/main/docs/programs/runtime-evidence/canonical-and-derived-state.md) — this repository's index-freshness check (source-hash comparison detecting stale indexes) is a working instance of the staleness-as-computable-relation design that document proposes
+
+The governing boundary: confidence is evidence support, not lifecycle permanence. Inferred edges carry estimator provenance and preserve disagreement rather than averaging it away; graph nodes become memory units only when consumed under Agent Memory's lifecycle and authority contracts.
+
+```text
+Implementation status: declared
+Conformance evidence:  none yet
 ```
 
 ## MCP Integration
