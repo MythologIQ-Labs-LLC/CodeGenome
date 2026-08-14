@@ -228,7 +228,10 @@ mod tests {
 
     use super::*;
 
-    fn test_node(address: UorAddress, span: Option<codegenome_identity::graph::node::Span>) -> Node {
+    fn test_node(
+        address: UorAddress,
+        span: Option<codegenome_identity::graph::node::Span>,
+    ) -> Node {
         Node {
             address,
             kind: if span.is_some() {
@@ -276,7 +279,10 @@ mod tests {
                 test_node(b_file_addr, None),
                 test_node(beta, Some(span)),
             ],
-            edges: vec![contains_edge(a_file_addr, alpha), contains_edge(b_file_addr, beta)],
+            edges: vec![
+                contains_edge(a_file_addr, alpha),
+                contains_edge(b_file_addr, beta),
+            ],
         };
 
         assert_eq!(find_node_at(&overlay, b_file, 2).unwrap(), Some(beta));
