@@ -202,11 +202,7 @@ fn find_enclosing(
     spans: &SpanIndex,
 ) -> Option<UorAddress> {
     spans
-        .get(&(
-            path.to_path_buf(),
-            fn_span.start_line,
-            fn_span.end_line,
-        ))
+        .get(&(path.to_path_buf(), fn_span.start_line, fn_span.end_line))
         .copied()
 }
 
@@ -253,7 +249,9 @@ mod tests {
         let decoy_leaf = symbols.resolve(&decoy_path, "decoy_leaf").unwrap();
 
         assert_ne!(main_middle, decoy_middle);
-        assert!(symbols.resolve(Path::new("fixture/missing.rs"), "middle").is_none());
+        assert!(symbols
+            .resolve(Path::new("fixture/missing.rs"), "middle")
+            .is_none());
 
         let resolved = resolve_multi(&parsed, &groups, &languages);
 
