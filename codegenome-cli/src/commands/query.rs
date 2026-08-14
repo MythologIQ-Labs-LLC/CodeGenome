@@ -110,7 +110,9 @@ fn resolve_indexed_file(store_dir: &Path, requested_file: &str) -> Result<String
     let matches = if exact.is_empty() { suffix } else { exact };
     match matches.as_slice() {
         [only] => Ok(only.clone()),
-        [] => Err(format!("file is not present in the index: {requested_file}")),
+        [] => Err(format!(
+            "file is not present in the index: {requested_file}"
+        )),
         many => Err(format!(
             "file path is ambiguous across {} indexed sources: {}",
             many.len(),
@@ -317,7 +319,10 @@ mod tests {
                     }),
                 ),
             ],
-            edges: vec![contains_edge(file_addr, outer), contains_edge(file_addr, inner)],
+            edges: vec![
+                contains_edge(file_addr, outer),
+                contains_edge(file_addr, inner),
+            ],
         };
 
         assert_eq!(find_node_at(&overlay, file, 6).unwrap(), Some(inner));
