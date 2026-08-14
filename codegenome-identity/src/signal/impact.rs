@@ -33,8 +33,7 @@ pub fn propagate_impact_directional(
         Direction::Downstream => propagate_one_direction(changed, overlays, Direction::Downstream),
         Direction::Upstream => propagate_one_direction(changed, overlays, Direction::Upstream),
         Direction::Both => {
-            let mut combined =
-                propagate_one_direction(changed, overlays, Direction::Downstream);
+            let mut combined = propagate_one_direction(changed, overlays, Direction::Downstream);
             let upstream = propagate_one_direction(changed, overlays, Direction::Upstream);
             for (addr, score) in upstream {
                 let entry = combined.entry(addr).or_insert(0.0);
@@ -89,7 +88,9 @@ fn build_directional_index(
             let (from, to) = match direction {
                 Direction::Downstream => (edge.source, edge.target),
                 Direction::Upstream => (edge.target, edge.source),
-                Direction::Both => unreachable!("Both is composed from independent directional runs"),
+                Direction::Both => {
+                    unreachable!("Both is composed from independent directional runs")
+                }
             };
             index.entry(from).or_default().push((to, edge.confidence));
         }
