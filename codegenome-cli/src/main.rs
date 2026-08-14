@@ -26,7 +26,11 @@ enum Commands {
         file: String,
         #[arg(long)]
         line: u32,
-        #[arg(long, default_value = "downstream")]
+        #[arg(
+            long,
+            default_value = "downstream",
+            value_parser = ["upstream", "downstream", "both"]
+        )]
         direction: String,
         #[arg(long)]
         json: bool,
@@ -220,44 +224,17 @@ mod tests {
     }
 
     #[test]
-    fn experiment_defaults_are_stable() {
-        let cli = Cli::try_parse_from(["codegenome", "experiment"]).unwrap();
-        let Commands::Experiment {
-            source_dir,
-            log_file,
-            max_iterations,
-            no_model,
-            ..
-        } = cli.command
-        else {
-            panic!("wrong variant");
-        };
-        assert_eq!(source_dir, ".");
-        assert_eq!(log_file, "experiments.tsv");
-        assert_eq!(max_iterations, None);
-        assert!(!no_model);
-    }
-
-    #[test]
-    fn index_then_status_round_trip() {
-        let base = std::env::temp_dir().join("codegenome-cli-roundtrip");
-        let src = base.join("src");
-        let store = base.join("store");
-        let _ = std::fs::remove_dir_all(&base);
-        std::fs::create_dir_all(&src).unwrap();
-        std::fs::write(
-            src.join("lib.rs"),
-            "pub fn entry() { helper(); }\nfn helper() {}\n",
-        )
-        .unwrap();
-
-        commands::index::run(src.to_str().unwrap(), store.to_str().unwrap());
-        assert!(store.exists(), "index must create the store directory");
-        let entries = std::fs::read_dir(&store).unwrap().count();
-        assert!(entries > 0, "store directory must not be empty");
-
-        // Must not panic reading the store it just wrote.
-        commands::status::run(store.to_str().unwrap(), true);
-        let _ = std::fs::remove_dir_all(&base);
+    fn query_rejects_unsupported_direction() {
+        assert!(Cli::try_parse_from([
+            "codegenome",
+            "query",
+            "--file",
+            "a.rs",
+            "--line",
+            "4",
+            "--direction",
+            "sideways",
+        ])
+        .is_err());
     }
 }

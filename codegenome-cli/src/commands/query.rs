@@ -3,9 +3,10 @@ use std::path::Path;
 use codegenome_identity::graph::edge::{Edge, Relation};
 use codegenome_identity::graph::node::Node;
 use codegenome_identity::graph::overlay::{Overlay, OverlayKind};
+use codegenome_identity::graph::query::Direction;
 use codegenome_identity::identity::{address_of, UorAddress};
 use codegenome_identity::measurement::GroundTruthLevel;
-use codegenome_identity::signal::impact::propagate_impact;
+use codegenome_identity::signal::impact::propagate_impact_directional;
 use codegenome_identity::store::backend::StoreBackend;
 use codegenome_identity::store::meta;
 use codegenome_identity::store::ondisk::OnDiskStore;
@@ -31,6 +32,14 @@ impl Overlay for StoredOverlay {
 }
 
 pub fn run(store_dir: &str, file: &str, line: u32, direction: &str, json: bool) {
+    let impact_direction = match parse_direction(direction) {
+        Ok(direction) => direction,
+        Err(error) => {
+            eprintln!("{error}");
+            return;
+        }
+    };
+
     let store = OnDiskStore::new(store_dir);
     let overlay = load_fused(&store);
     let Some(overlay) = overlay else {
@@ -59,7 +68,7 @@ pub fn run(store_dir: &str, file: &str, line: u32, direction: &str, json: bool) 
     };
 
     let overlays: Vec<&dyn Overlay> = vec![&overlay];
-    let impact = propagate_impact(&[target_addr], &overlays);
+    let impact = propagate_impact_directional(&[target_addr], &overlays, impact_direction);
 
     let mut results: Vec<_> = impact.iter().filter(|(_, &score)| score > 0.01).collect();
     results.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal));
@@ -69,6 +78,17 @@ pub fn run(store_dir: &str, file: &str, line: u32, direction: &str, json: bool) 
     } else {
         println!("Impact from {file}:{line} ({direction}):");
         print_human(&results, &overlay);
+    }
+}
+
+fn parse_direction(value: &str) -> Result<Direction, String> {
+    match value {
+        "downstream" => Ok(Direction::Downstream),
+        "upstream" => Ok(Direction::Upstream),
+        "both" => Ok(Direction::Both),
+        other => Err(format!(
+            "Unsupported impact direction `{other}`; expected upstream, downstream, or both"
+        )),
     }
 }
 
@@ -258,6 +278,17 @@ mod tests {
             provenance: Provenance::tool("test", Timestamp(0)),
             evidence: vec![],
         }
+    }
+
+    #[test]
+    fn direction_parser_accepts_declared_values_and_rejects_unknowns() {
+        assert_eq!(
+            parse_direction("downstream").unwrap(),
+            Direction::Downstream
+        );
+        assert_eq!(parse_direction("upstream").unwrap(), Direction::Upstream);
+        assert_eq!(parse_direction("both").unwrap(), Direction::Both);
+        assert!(parse_direction("sideways").is_err());
     }
 
     #[test]

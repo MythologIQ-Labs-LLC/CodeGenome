@@ -1,6 +1,6 @@
 use crate::graph::*;
 use crate::identity::address_of;
-use crate::signal::impact::propagate_impact;
+use crate::signal::impact::{propagate_impact, propagate_impact_directional};
 use crate::signal::staleness::propagate_staleness;
 use crate::signal::topo::topological_sort;
 
@@ -125,6 +125,33 @@ fn impact_diamond_max_path() {
     // Path A→C→D: 0.5*0.3 = 0.15
     // max = 0.72
     assert!((impact[&addr("D")] - 0.72).abs() < 0.01);
+}
+
+#[test]
+fn directional_impact_distinguishes_upstream_and_downstream() {
+    let chain = linear_chain();
+    let overlays: [&dyn Overlay; 1] = [&chain];
+
+    let downstream = propagate_impact_directional(&[addr("B")], &overlays, Direction::Downstream);
+    assert_eq!(downstream.get(&addr("A")), None);
+    assert!((downstream[&addr("B")] - 1.0).abs() < f64::EPSILON);
+    assert!((downstream[&addr("C")] - 0.5).abs() < f64::EPSILON);
+
+    let upstream = propagate_impact_directional(&[addr("B")], &overlays, Direction::Upstream);
+    assert!((upstream[&addr("A")] - 0.5).abs() < f64::EPSILON);
+    assert!((upstream[&addr("B")] - 1.0).abs() < f64::EPSILON);
+    assert_eq!(upstream.get(&addr("C")), None);
+}
+
+#[test]
+fn directional_impact_both_is_max_union() {
+    let chain = linear_chain();
+    let overlays: [&dyn Overlay; 1] = [&chain];
+
+    let both = propagate_impact_directional(&[addr("B")], &overlays, Direction::Both);
+    assert!((both[&addr("A")] - 0.5).abs() < f64::EPSILON);
+    assert!((both[&addr("B")] - 1.0).abs() < f64::EPSILON);
+    assert!((both[&addr("C")] - 0.5).abs() < f64::EPSILON);
 }
 
 #[test]
