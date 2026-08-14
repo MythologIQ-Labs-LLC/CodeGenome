@@ -282,7 +282,10 @@ mod tests {
 
     #[test]
     fn direction_parser_accepts_declared_values_and_rejects_unknowns() {
-        assert_eq!(parse_direction("downstream").unwrap(), Direction::Downstream);
+        assert_eq!(
+            parse_direction("downstream").unwrap(),
+            Direction::Downstream
+        );
         assert_eq!(parse_direction("upstream").unwrap(), Direction::Upstream);
         assert_eq!(parse_direction("both").unwrap(), Direction::Both);
         assert!(parse_direction("sideways").is_err());
